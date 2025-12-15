@@ -63,9 +63,6 @@
         .trip-card-content {
             flex-grow: 1;
         }
-        
-        /* 移除圖片相關樣式 */
-        /* .itinerary-image { ... } */
     </style>
 </head>
 <body>
@@ -451,18 +448,16 @@
         other: { label: '其他', icon: 'fas fa-tag', color: 'border-gray-500' },
     };
     
-    // 移除 DEFAULT_MAP_IMAGE
-    // const DEFAULT_MAP_IMAGE = '...'; 
-
     const getCategoryColorClass = (category) => CATEGORY_MAP[category]?.color || 'border-gray-300';
     const getCategoryIcon = (category) => CATEGORY_MAP[category]?.icon || 'fas fa-question';
     const getCategoryLabel = (category) => CATEGORY_MAP[category]?.label || '未知';
     const formatNumber = (num) => (num || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
     
-    // 修正的 Google Maps 連結
+    // 【修正】優化 Google Maps 連結，使用標準 Search URL，提高準確度
     const openMap = (address) => {
         if (!address) return alert('地址資料缺失，無法導航。');
-        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`, '_blank');
+        // 使用標準的 Google Maps Search URL 格式，以利 Google 智慧解析地址和景點名稱
+        window.open(`https://www.google.com/maps/search/${encodeURIComponent(address)}`, '_blank');
     };
 
     // 生成一段時間範圍內的日期列表
@@ -496,7 +491,7 @@
             const showExpenseModal = ref(false);
             const showAddHotelModal = ref(false); 
             const showAddItineraryModal = ref(false); 
-            const showEditTripModal = ref(false); // 【新增】編輯旅遊 Modal
+            const showEditTripModal = ref(false); 
 
             const isHotelEditMode = ref(false); 
             const isItineraryEditMode = ref(false); 
@@ -508,15 +503,13 @@
             const newShoppingItem = ref({ name: '', price: null });
             const newExpense = ref({ name: '', amount: null, category: 'food', date: new Date().toISOString().split('T')[0], paymentMethod: '現金' });
             const newHotel = ref({ name: '', date: '', address: '' });
-            // 【修正】移除圖片相關欄位
             const newItinerary = ref({ time: '', name: '', address: '' }); 
-            // 【新增】編輯旅遊時的暫存數據
             const editingTripData = ref({ 
                 id: null, name: '', startDate: '', endDate: '', type: '',
             });
 
 
-            // 模擬的多個旅遊計畫數據 (已移除 itinerary 內所有圖片相關欄位)
+            // 模擬的多個旅遊計畫數據
             const trips = ref([
                 { 
                     id: 1, 
@@ -531,10 +524,10 @@
                         selectedDateIndex: 0,
                         itineraryData: {
                             0: [
-                                { time: '09:00', name: '新千歲機場 (CTS)', address: '北海道千歳市美々' }, // 移除 userImageUrl
-                                { time: '12:00', name: '海鮮午餐', address: '北海道札幌市中央区南４条西４丁目１' } // 移除 userImageUrl
+                                { time: '09:00', name: '新千歲機場 (CTS)', address: '北海道千歳市美々' }, 
+                                { time: '12:00', name: '海鮮午餐', address: '北海道札幌市中央区南４条西４丁目１' }
                             ],
-                            1: [{ time: '10:30', name: '白色戀人公園', address: '北海道札幌市西区宮の沢２条２丁目１１−36' }], // 移除 userImageUrl
+                            1: [{ time: '10:30', name: '白色戀人公園', address: '北海道札幌市西区宮の沢２条２丁目１１−36' }], 
                         },
                         hotels: [
                             { date: '12/15-12/18', name: '札幌公園飯店', address: '北海道札幌市中央区南９条西３丁目' },
@@ -559,7 +552,7 @@
                 { id: 'expenses', label: '花費', icon: 'fas fa-yen-sign' },
             ];
 
-            // --- 計算屬性 (不變) ---
+            // --- 計算屬性 ---
             const getTripStatus = (trip) => {
                 const now = new Date();
                 const start = new Date(trip.startDate);
@@ -597,7 +590,6 @@
                 return [...upcomingTrips.value, ...completedTrips.value];
             });
             
-            // 獲取當前選定日期的行程數據 (不變)
             const getCurrentItinerary = () => {
                 if (!selectedTrip.value) return [];
                 const index = selectedTrip.value.data.selectedDateIndex;
@@ -672,9 +664,8 @@
                 showAddTripModal.value = false;
             };
             
-            // 【新增】開啟旅遊編輯 Modal
+            // 開啟旅遊編輯 Modal
             const openEditTripModal = () => {
-                // 複製當前選定行程的數據到編輯表單
                 if (selectedTrip.value) {
                     editingTripData.value = {
                         id: selectedTrip.value.id,
@@ -687,7 +678,7 @@
                 }
             };
 
-            // 【新增】儲存旅遊編輯結果
+            // 儲存旅遊編輯結果
             const saveEditedTrip = () => {
                 const data = editingTripData.value;
                 if (!data.name || !data.startDate || !data.endDate || !data.type) {
@@ -699,15 +690,12 @@
                     return;
                 }
                 
-                // 1. 找到原始行程數據
                 const tripIndex = trips.value.findIndex(t => t.id === data.id);
                 if (tripIndex === -1) return;
 
-                // 2. 更新基本資訊
                 trips.value[tripIndex].name = data.name;
                 trips.value[tripIndex].type = data.type;
                 
-                // 3. 處理日期變更
                 const oldStartDate = trips.value[tripIndex].startDate;
                 const oldEndDate = trips.value[tripIndex].endDate;
 
@@ -715,32 +703,27 @@
                     
                     const oldDates = trips.value[tripIndex].data.dates;
                     
-                    // A. 更新日期
                     trips.value[tripIndex].startDate = data.startDate;
                     trips.value[tripIndex].endDate = data.endDate;
 
-                    // B. 重新生成日期陣列
                     const newDates = generateDateRange(data.startDate, data.endDate);
                     trips.value[tripIndex].data.dates = newDates;
                     
-                    // C. 檢查行程數據是否需要重組並發出警告
                     if (newDates.length !== oldDates.length) {
                         alert(`【注意】行程日期已從 ${oldDates.length} 天更改為 ${newDates.length} 天。現有的行程數據可能會因為日期變動而錯位或遺失，請至「行程」頁面確認與調整。`);
                     } else if (newDates.some((date, index) => date !== oldDates[index])) {
                         alert('【注意】行程日期範圍已變動，現有的行程數據可能會因為日期變動而錯位，請至「行程」頁面確認與調整。');
                     }
                     
-                    // D. 重置 selectedDateIndex 以避免索引越界
                     trips.value[tripIndex].data.selectedDateIndex = 0;
                 }
                 
                 showEditTripModal.value = false;
-                // 強制更新 selectedTrip 以反映 computed property 的變化
                 selectedTrip.value = decoratedTrips.value.find(t => t.id === data.id);
             };
 
 
-            // 【修正】新增行程項目 (移除圖片處理)
+            // 新增行程項目
             const addItineraryItem = () => {
                 if (!newItinerary.value.name || !newItinerary.value.address) {
                     alert('行程名稱和地址為必填項！');
@@ -751,18 +734,16 @@
                     time: newItinerary.value.time || '',
                     name: newItinerary.value.name,
                     address: newItinerary.value.address,
-                    // 移除 userImageUrl 相關欄位
                 };
                 
                 getCurrentItinerary().push(newItem);
                 
-                // 重設表單
                 newItinerary.value = { time: '', name: '', address: '' };
                 showAddItineraryModal.value = false;
                 isItineraryEditMode.value = true; 
             };
             
-            // 移除行程項目 (不變)
+            // 移除行程項目
             const removeItineraryItem = (index) => {
                 if (confirm('確定要刪除此行程嗎？')) {
                     getCurrentItinerary().splice(index, 1);
@@ -820,7 +801,7 @@
                 showExpenseModal,
                 showAddHotelModal,
                 showAddItineraryModal, 
-                showEditTripModal, // 導出
+                showEditTripModal,
                 isHotelEditMode, 
                 isItineraryEditMode, 
                 newTripName,
@@ -830,14 +811,14 @@
                 newExpense,
                 newHotel, 
                 newItinerary, 
-                editingTripData, // 導出
+                editingTripData,
                 tripTabs,
                 goToTrip,
                 goHome,
                 confirmRemoveTrip, 
                 addNewTrip,
-                openEditTripModal, // 導出
-                saveEditedTrip, // 導出
+                openEditTripModal,
+                saveEditedTrip,
                 addShoppingItem,
                 removeShoppingItem,
                 addExpense,
