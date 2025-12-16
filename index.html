@@ -62,26 +62,55 @@
         
         /* 針對日期滑軸卡片的樣式 */
         .date-card {
-            min-width: 80px; /* 固定卡片寬度 */
+            min-width: 80px; 
+            height: 70px; 
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            /* 調整高度讓三行文字舒適顯示 */
-            height: 70px; 
         }
         
-        /* 新增 CSS：隱藏滑軸 */
+        /* 隱藏滑軸 */
         .hide-scrollbar::-webkit-scrollbar {
-            display: none; /* For Chrome, Safari, and Opera */
+            display: none; 
             width: 0;      
             height: 0;
         }
 
         .hide-scrollbar {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+            -ms-overflow-style: none;  
+            scrollbar-width: none;  
+        }
+
+        /* ================================================= */
+        /* 【新增】行程卡片底圖與漸層樣式 */
+        /* ================================================= */
+        .itinerary-card {
+            background-color: white; /* 預設背景色 */
+            position: relative;
+            overflow: hidden; /* 確保內容不會溢出圓角 */
+            transition: all 0.3s ease;
+        }
+
+        .itinerary-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            /* 使用 mask-image 實現水墨漸層效果 */
+            mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 95%, rgba(0,0,0,0) 100%);
+            -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 95%, rgba(0,0,0,0) 100%);
+            z-index: 1; /* 位於卡片內容之下 */
+        }
+        
+        /* 確保內容層疊在背景圖之上 */
+        .itinerary-content {
+            position: relative;
+            z-index: 2;
         }
     </style>
 </head>
@@ -187,48 +216,51 @@
                          :class="['date-card p-2 rounded-xl transition-colors duration-200 shadow-sm', 
                                   selectedTrip.data.selectedDateIndex === index ? 'bg-jp-blue-dark text-white' : 'bg-white text-gray-700 hover:bg-gray-100']">
                         
-                        <span class="text-xs opacity-80">
-                            {{ getMonthAbbreviation(date) }}
-                        </span>
-                        
-                        <span class="text-lg font-bold">
-                            {{ new Date(date).getDate() }}
-                        </span>
-                        
-                        <span class="text-xs opacity-80">
-                            {{ getDayOfWeek(date) }}
-                        </span>
+                        <span class="text-xs opacity-80">{{ getMonthAbbreviation(date) }}</span>
+                        <span class="text-lg font-bold">{{ new Date(date).getDate() }}</span>
+                        <span class="text-xs opacity-80">{{ getDayOfWeek(date) }}</span>
                     </div>
                 </div>
                 
                 <div v-if="sortedCurrentItinerary.length" class="space-y-3 pt-2">
                     <div v-for="item in sortedCurrentItinerary" :key="item.originalIndex"
-                         class="bg-white p-4 rounded-xl shadow-md relative flex items-start"
+                         class="p-4 rounded-xl shadow-md relative flex items-start itinerary-card"
                          :style="{ borderLeft: `5px solid ${getItineraryColor(item.category)}` }">
                         
-                        <div class="flex-shrink-0 mr-3 mt-1 w-6 h-6 flex items-center justify-center rounded-full"
-                             :style="{ backgroundColor: getItineraryColor(item.category) }">
-                            <i :class="getItineraryIcon(item.category)" class="text-white text-sm"></i>
+                        <div v-if="item.imageURL" 
+                             class="itinerary-background"
+                             :style="{ 
+                                 backgroundImage: `url('${item.imageURL}')`,
+                                 opacity: item.imageOpacity / 100 
+                             }">
                         </div>
-                        
-                        <div class="flex-1 mr-12">
-                            <p class="text-sm text-gray-500 font-medium">{{ item.time || '未定' }}</p>
-                            <h4 class="text-lg font-semibold text-gray-800">{{ item.name }}</h4>
-                            <p class="text-xs text-gray-600 truncate">{{ item.address }}</p>
-                            <p v-if="item.notes" class="text-sm text-gray-700 mt-2 p-2 border-l-2 border-jp-accent-pink bg-jp-accent-pink/10 whitespace-pre-wrap">
-                                <i class="fas fa-sticky-note mr-1"></i> {{ item.notes }}
-                            </p>
-                        </div>
-                        
-                        <div class="absolute top-2 right-2 flex flex-col items-center space-y-1 z-10">
-                            <button @click="openEditItineraryModal(item)" 
-                                    class="text-gray-500 hover:text-jp-blue-dark p-1 rounded-full bg-white/70 transition duration-150">
-                                <i class="fas fa-pen"></i>
-                            </button>
-                            <button v-if="item.address" @click="openMap(item.address)" 
-                                    class="text-jp-blue-dark hover:text-jp-blue-dark/80 p-1 rounded-full bg-white/70 transition duration-150">
-                                <i class="fas fa-map-marker-alt text-sm"></i>
-                            </button>
+
+                        <div class="itinerary-content flex items-start w-full">
+                            <div class="flex-shrink-0 mr-3 mt-1 w-6 h-6 flex items-center justify-center rounded-full"
+                                 :style="{ backgroundColor: getItineraryColor(item.category) }">
+                                <i :class="getItineraryIcon(item.category)" class="text-white text-sm"></i>
+                            </div>
+                            
+                            <div class="flex-1 mr-12">
+                                <p class="text-sm text-gray-500 font-medium">{{ item.time || '未定' }}</p>
+                                <h4 class="text-lg font-semibold text-gray-800">{{ item.name }}</h4>
+                                <p class="text-xs text-gray-600 truncate">{{ item.address }}</p>
+                                
+                                <p v-if="item.notes" class="text-sm text-gray-700 mt-2 p-2 border-l-2 border-jp-accent-pink bg-jp-accent-pink/10 whitespace-pre-wrap">
+                                    <i class="fas fa-sticky-note mr-1"></i> {{ item.notes }}
+                                </p>
+                            </div>
+                            
+                            <div class="absolute top-2 right-2 flex flex-col items-center space-y-1 z-10">
+                                <button @click="openEditItineraryModal(item)" 
+                                        class="text-gray-500 hover:text-jp-blue-dark p-1 rounded-full bg-white/70 transition duration-150">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button v-if="item.address" @click="openMap(item.address)" 
+                                        class="text-jp-blue-dark hover:text-jp-blue-dark/80 p-1 rounded-full bg-white/70 transition duration-150">
+                                    <i class="fas fa-map-marker-alt text-sm"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -432,6 +464,16 @@
             <div class="mb-4"><label class="block text-sm font-medium text-gray-700">行程名稱</label><input type="text" v-model="newItinerary.name" class="mt-1 block w-full border rounded-md p-2"></div>
             <div class="mb-4"><label class="block text-sm font-medium text-gray-700">地址 (必填，用於地圖)</label><input type="text" v-model="newItinerary.address" class="mt-1 block w-full border rounded-md p-2"></div>
             
+            <div class="mb-4 border p-3 rounded-lg bg-gray-50">
+                <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                    <i class="fas fa-image mr-1"></i> 行程背景圖
+                </label>
+                <input type="url" v-model="newItinerary.imageURL" placeholder="請輸入圖片 URL (選填)" class="mt-1 block w-full border rounded-md shadow-sm p-2 text-sm">
+                
+                <label class="block text-sm font-medium text-gray-700 mt-3 mb-1">圖片透明度 ({{ newItinerary.imageOpacity }}%)</label>
+                <input type="range" min="10" max="100" step="5" v-model.number="newItinerary.imageOpacity" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg">
+            </div>
+            
             <div class="mb-4"><label class="block text-sm font-medium text-gray-700">備註</label><textarea v-model="newItinerary.notes" rows="3" placeholder="例如：預約號碼、特殊飲食需求、交通方式..." class="mt-1 block w-full border rounded-md p-2 resize-none"></textarea></div>
             
             <div class="flex justify-end space-x-3 mt-6">
@@ -459,6 +501,16 @@
                 <div class="mb-4"><label class="block text-sm font-medium text-gray-700">時間 (手機可選時鐘)</label><input type="time" v-model="editingItineraryItem.time" class="mt-1 block w-full border rounded-md p-2"></div>
                 <div class="mb-4"><label class="block text-sm font-medium text-gray-700">行程名稱</label><input type="text" v-model="editingItineraryItem.name" class="mt-1 block w-full border rounded-md p-2"></div>
                 <div class="mb-4"><label class="block text-sm font-medium text-gray-700">地址 (用於地圖)</label><input type="text" v-model="editingItineraryItem.address" class="mt-1 block w-full border rounded-md p-2"></div>
+                
+                <div class="mb-4 border p-3 rounded-lg bg-gray-50">
+                    <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        <i class="fas fa-image mr-1"></i> 行程背景圖
+                    </label>
+                    <input type="url" v-model="editingItineraryItem.imageURL" placeholder="請輸入圖片 URL (選填)" class="mt-1 block w-full border rounded-md shadow-sm p-2 text-sm">
+                    
+                    <label class="block text-sm font-medium text-gray-700 mt-3 mb-1">圖片透明度 ({{ editingItineraryItem.imageOpacity }}%)</label>
+                    <input type="range" min="10" max="100" step="5" v-model.number="editingItineraryItem.imageOpacity" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg">
+                </div>
                 
                 <div class="mb-4"><label class="block text-sm font-medium text-gray-700">備註</label><textarea v-model="editingItineraryItem.notes" rows="3" placeholder="例如：注意事項、預約資訊..." class="mt-1 block w-full border rounded-md p-2 resize-none"></textarea></div>
             </template>
@@ -522,7 +574,7 @@
         other: { label: '其他', icon: 'fas fa-tag', color: 'border-gray-500' },
     };
     
-    // 【新增】行程分類
+    // 行程分類
     const ITINERARY_CATEGORIES = {
         flight: { label: '航班', icon: 'fas fa-plane-departure', color: '#1E88E5' }, // 藍色
         transport: { label: '交通', icon: 'fas fa-route', color: '#FF7043' }, // 橙色
@@ -554,17 +606,16 @@
     const getCategoryLabel = (category) => CATEGORY_MAP[category]?.label || '未知';
     const formatNumber = (num) => (num || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
     
-    // 【新增】行程分類 - 取得 ICON
+    // 行程分類 - 取得 ICON
     const getItineraryIcon = (category) => ITINERARY_CATEGORIES[category]?.icon || ITINERARY_CATEGORIES.other.icon;
-    // 【新增】行程分類 - 取得顏色
+    // 行程分類 - 取得顏色
     const getItineraryColor = (category) => ITINERARY_CATEGORIES[category]?.color || ITINERARY_CATEGORIES.other.color;
 
 
-    // Google Maps 連結改為僅顯示位置 (使用 search api)
+    // Google Maps 連結
     const openMap = (address) => {
         if (!address) return alert('地址資料缺失，無法顯示地圖。');
-        // 使用 Google Maps Search API 連結，只顯示該地點，不開啟導航
-        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`, '_blank');
+        window.open(`https://www.google.com/maps/search/?api=1&query=$${encodeURIComponent(address)}`, '_blank');
     };
 
     const generateDateRange = (start, end) => {
@@ -610,8 +661,11 @@
             const newShoppingItem = ref({ name: '', price: null });
             const newExpense = ref({ name: '', amount: null, category: 'food', date: new Date().toISOString().split('T')[0], paymentMethod: '現金' });
             const newHotel = ref({ name: '', date: '', address: '' });
-            // 【修正】新增行程項目預設加入 category
-            const newItinerary = ref({ time: '', name: '', address: '', notes: '', category: 'attraction' }); 
+            // 【修正】新增行程項目預設加入 category、imageURL、imageOpacity
+            const newItinerary = ref({ 
+                time: '', name: '', address: '', notes: '', category: 'attraction', 
+                imageURL: '', imageOpacity: 50 // 預設透明度 50%
+            }); 
             const editingTripData = ref({ 
                 id: null, name: '', startDate: '', endDate: '', type: '',
             });
@@ -632,13 +686,13 @@
                         selectedDateIndex: 0,
                         itineraryData: {
                             0: [
-                                // 【新增 category 屬性】
-                                { time: '09:00', name: '新千歲機場 (CTS)', address: '北海道千歳市美々', notes: '預計搭乘 JAL 123 班機，記得領取行李後，直接去購買 JR Pass。', category: 'flight' }, 
-                                { time: '12:00', name: '海鮮午餐', address: '北海道札幌市中央区南４条西４丁目１', notes: '午餐預計在場外市場用餐，目標是帝王蟹！', category: 'food' },
-                                { time: '18:30', name: '札幌電視塔', address: '北海道札幌市中央区大通西１丁目', notes: '', category: 'attraction' },
-                                { time: '15:00', name: '大通公園', address: '北海道札幌市中央区大通西７丁目', notes: '確認是否有雪祭活動', category: 'attraction' }, 
+                                // 【新增圖片測試資料】
+                                { time: '09:00', name: '新千歲機場 (CTS)', address: '北海道千歳市美々', notes: '預計搭乘 JAL 123 班機，記得領取行李後，直接去購買 JR Pass。', category: 'flight', imageURL: 'https://images.unsplash.com/photo-1542456073-61a7c4f48866?q=80&w=200&h=100&auto=format&fit=crop', imageOpacity: 40 }, 
+                                { time: '12:00', name: '海鮮午餐', address: '北海道札幌市中央区南４条西４丁目１', notes: '午餐預計在場外市場用餐，目標是帝王蟹！', category: 'food', imageURL: 'https://images.unsplash.com/photo-1596707328639-652a6a6f1943?q=80&w=200&h=100&auto=format&fit=crop', imageOpacity: 60 },
+                                { time: '18:30', name: '札幌電視塔', address: '北海道札幌市中央区大通西１丁目', notes: '', category: 'attraction', imageURL: '', imageOpacity: 50 },
+                                { time: '15:00', name: '大通公園', address: '北海道札幌市中央区大通西７丁目', notes: '確認是否有雪祭活動', category: 'attraction', imageURL: 'https://images.unsplash.com/photo-1517036979204-c368d18e9a2b?q=80&w=200&h=100&auto=format&fit=crop', imageOpacity: 70 }, 
                             ],
-                            1: [{ time: '10:30', name: '白色戀人公園', address: '北海道札幌市西区宮の沢２条２丁目１１−36', notes: '建議停留 2.5 小時，要買限定餅乾。', category: 'attraction' }], 
+                            1: [{ time: '10:30', name: '白色戀人公園', address: '北海道札幌市西区宮の沢２条２丁目１１−36', notes: '建議停留 2.5 小時，要買限定餅乾。', category: 'attraction', imageURL: '', imageOpacity: 50 }], 
                         },
                         hotels: [
                             { date: '12/15-12/18', name: '札幌公園飯店', address: '北海道札幌市中央区南９条西３丁目' },
@@ -715,7 +769,13 @@
                 
                 // 返回一個排序後的副本，並加入一個 'originalIndex' 屬性來追蹤它在原始陣列中的位置
                 return itinerary
-                    .map((item, originalIndex) => ({ ...item, originalIndex })) 
+                    .map((item, originalIndex) => ({ 
+                        ...item, 
+                        originalIndex,
+                        // 確保圖片屬性有預設值
+                        imageURL: item.imageURL || '', 
+                        imageOpacity: item.imageOpacity !== undefined ? item.imageOpacity : 50 
+                    })) 
                     .sort((a, b) => {
                         // 排序邏輯：沒有時間的排在最後面
                         if (!a.time && !b.time) return 0;
@@ -847,10 +907,12 @@
 
             // 開啟編輯行程項目 Modal
             const openEditItineraryModal = (item) => {
-                // 【修正】確保編輯時 category 存在
+                // 確保編輯時所有屬性有預設值，特別是新的 image 屬性
                 editingItineraryItem.value = { 
                     ...item,
-                    category: item.category || 'attraction' // 預設為景點
+                    category: item.category || 'attraction', 
+                    imageURL: item.imageURL || '',
+                    imageOpacity: item.imageOpacity !== undefined ? item.imageOpacity : 50 
                 }; 
                 showEditItineraryModal.value = true;
             };
@@ -867,12 +929,14 @@
                 const originalIndex = itemToSave.originalIndex; 
 
                 if (originalIndex !== undefined && currentItineraryList[originalIndex]) {
-                    // 更新原始項目數據，包含 category
+                    // 更新原始項目數據，包含 category, imageURL, imageOpacity
                     currentItineraryList[originalIndex].time = itemToSave.time || '';
                     currentItineraryList[originalIndex].name = itemToSave.name;
                     currentItineraryList[originalIndex].address = itemToSave.address;
                     currentItineraryList[originalIndex].notes = itemToSave.notes || '';
-                    currentItineraryList[originalIndex].category = itemToSave.category; // 【關鍵更新】
+                    currentItineraryList[originalIndex].category = itemToSave.category; 
+                    currentItineraryList[originalIndex].imageURL = itemToSave.imageURL;
+                    currentItineraryList[originalIndex].imageOpacity = itemToSave.imageOpacity;
                 } else {
                      alert('無法找到原始行程項目進行更新。');
                 }
@@ -894,13 +958,19 @@
                     name: newItinerary.value.name,
                     address: newItinerary.value.address,
                     notes: newItinerary.value.notes || '', 
-                    category: newItinerary.value.category, // 【關鍵更新】
+                    category: newItinerary.value.category, 
+                    imageURL: newItinerary.value.imageURL || '',
+                    imageOpacity: newItinerary.value.imageOpacity || 50,
                 };
                 
                 const currentItineraryList = selectedTrip.value.data.itineraryData[selectedTrip.value.data.selectedDateIndex];
                 currentItineraryList.push(newItem);
                 
-                newItinerary.value = { time: '', name: '', address: '', notes: '', category: 'attraction' }; // 重置時保留預設分類
+                // 重置表單
+                newItinerary.value = { 
+                    time: '', name: '', address: '', notes: '', category: 'attraction', 
+                    imageURL: '', imageOpacity: 50 
+                };
                 showAddItineraryModal.value = false;
             };
             
@@ -960,7 +1030,7 @@
 
             return {
                 // 常量
-                ITINERARY_CATEGORIES, // 傳遞給 Vue 模板使用
+                ITINERARY_CATEGORIES, 
                 // 狀態與資料
                 currentView,
                 trips: decoratedTrips,
@@ -1013,8 +1083,8 @@
                 getCategoryLabel,
                 getDayOfWeek,
                 getMonthAbbreviation,
-                getItineraryIcon, // 【新增】
-                getItineraryColor // 【新增】
+                getItineraryIcon, 
+                getItineraryColor 
             };
         }
     }).mount('#app');
