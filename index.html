@@ -201,14 +201,19 @@
                         <div class="flex justify-between items-start">
                             <div class="flex-1 mr-3">
                                 <template v-if="isItineraryEditMode">
-                                    <input type="text" v-model="item.time" placeholder="時間 (e.g., 10:00)" class="text-sm text-gray-500 font-medium w-full p-1 border rounded-md mb-1">
+                                    <input type="time" v-model="item.time" placeholder="時間 (e.g., 10:00)" class="text-sm text-gray-500 font-medium w-full p-1 border rounded-md mb-1">
                                     <input type="text" v-model="item.name" placeholder="行程名稱" class="text-lg font-semibold w-full p-1 border rounded-md mb-1">
                                     <input type="text" v-model="item.address" placeholder="地址 (用於導航)" class="text-xs text-gray-600 w-full p-1 border rounded-md mb-1">
+                                    <textarea v-model="item.notes" placeholder="備註 (例如：注意事項、預約資訊)" rows="2" class="text-xs text-gray-700 w-full p-1 border rounded-md resize-none"></textarea>
                                 </template>
+                                
                                 <template v-else>
                                     <p class="text-sm text-gray-500 font-medium">{{ item.time }}</p>
                                     <h4 class="text-lg font-semibold text-gray-800">{{ item.name }}</h4>
                                     <p class="text-xs text-gray-600 truncate">{{ item.address }}</p>
+                                     <p v-if="item.notes" class="text-sm text-gray-700 mt-2 p-2 border-l-2 border-jp-accent-pink bg-jp-accent-pink/10 whitespace-pre-wrap">
+                                        <i class="fas fa-sticky-note mr-1"></i> {{ item.notes }}
+                                    </p>
                                 </template>
                             </div>
                             
@@ -392,9 +397,11 @@
             <h3 class="text-xl font-bold mb-4 border-b pb-2 text-jp-blue-dark">新增行程項目</h3>
             <p class="text-xs text-red-500 mb-4">目前正在為 {{ new Date(selectedTrip.data.dates[selectedTrip.data.selectedDateIndex]).toLocaleDateString() }} 新增行程。</p>
             
-            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">時間 (e.g., 10:00)</label><input type="time" v-model="newItinerary.time" class="mt-1 block w-full border rounded-md p-2"></div>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">時間 (手機可選時鐘)</label><input type="time" v-model="newItinerary.time" class="mt-1 block w-full border rounded-md p-2"></div>
             <div class="mb-4"><label class="block text-sm font-medium text-gray-700">行程名稱</label><input type="text" v-model="newItinerary.name" class="mt-1 block w-full border rounded-md p-2"></div>
             <div class="mb-4"><label class="block text-sm font-medium text-gray-700">地址 (必填，用於導航)</label><input type="text" v-model="newItinerary.address" class="mt-1 block w-full border rounded-md p-2"></div>
+            
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">備註</label><textarea v-model="newItinerary.notes" rows="3" placeholder="例如：預約號碼、特殊飲食需求、交通方式..." class="mt-1 block w-full border rounded-md p-2 resize-none"></textarea></div>
             
             <div class="flex justify-end space-x-3 mt-6">
                 <button @click="showAddItineraryModal = false" class="px-4 py-2 text-gray-600 border rounded-lg">取消</button>
@@ -503,13 +510,14 @@
             const newShoppingItem = ref({ name: '', price: null });
             const newExpense = ref({ name: '', amount: null, category: 'food', date: new Date().toISOString().split('T')[0], paymentMethod: '現金' });
             const newHotel = ref({ name: '', date: '', address: '' });
-            const newItinerary = ref({ time: '', name: '', address: '' }); 
+            // 【修正】新增 notes 欄位
+            const newItinerary = ref({ time: '', name: '', address: '', notes: '' }); 
             const editingTripData = ref({ 
                 id: null, name: '', startDate: '', endDate: '', type: '',
             });
 
 
-            // 模擬的多個旅遊計畫數據
+            // 模擬的多個旅遊計畫數據 (已更新：行程加入備註)
             const trips = ref([
                 { 
                     id: 1, 
@@ -524,10 +532,10 @@
                         selectedDateIndex: 0,
                         itineraryData: {
                             0: [
-                                { time: '09:00', name: '新千歲機場 (CTS)', address: '北海道千歳市美々' }, 
-                                { time: '12:00', name: '海鮮午餐', address: '北海道札幌市中央区南４条西４丁目１' }
+                                { time: '09:00', name: '新千歲機場 (CTS)', address: '北海道千歳市美々', notes: '預計搭乘 JAL 123 班機，記得領取行李後，直接去購買 JR Pass。' }, 
+                                { time: '12:00', name: '海鮮午餐', address: '北海道札幌市中央区南４条西４丁目１', notes: '午餐預計在場外市場用餐，目標是帝王蟹！' }
                             ],
-                            1: [{ time: '10:30', name: '白色戀人公園', address: '北海道札幌市西区宮の沢２条２丁目１１−36' }], 
+                            1: [{ time: '10:30', name: '白色戀人公園', address: '北海道札幌市西区宮の沢２条２丁目１１−36', notes: '建議停留 2.5 小時，要買限定餅乾。' }], 
                         },
                         hotels: [
                             { date: '12/15-12/18', name: '札幌公園飯店', address: '北海道札幌市中央区南９条西３丁目' },
@@ -723,7 +731,7 @@
             };
 
 
-            // 新增行程項目
+            // 新增行程項目 (已更新：儲存備註)
             const addItineraryItem = () => {
                 if (!newItinerary.value.name || !newItinerary.value.address) {
                     alert('行程名稱和地址為必填項！');
@@ -734,11 +742,13 @@
                     time: newItinerary.value.time || '',
                     name: newItinerary.value.name,
                     address: newItinerary.value.address,
+                    notes: newItinerary.value.notes || '', // 【新增】儲存備註
                 };
                 
                 getCurrentItinerary().push(newItem);
                 
-                newItinerary.value = { time: '', name: '', address: '' };
+                // 【修正】重置備註
+                newItinerary.value = { time: '', name: '', address: '', notes: '' }; 
                 showAddItineraryModal.value = false;
                 isItineraryEditMode.value = true; 
             };
