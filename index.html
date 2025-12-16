@@ -212,7 +212,7 @@
                             </button>
                             <button v-if="item.address" @click="openMap(item.address)" 
                                     class="text-jp-blue-dark hover:text-jp-blue-dark/80 p-1 rounded-full bg-white/70 transition duration-150">
-                                <i class="fas fa-location-arrow text-sm"></i>
+                                <i class="fas fa-map-marker-alt text-sm"></i>
                             </button>
                         </div>
                         
@@ -271,7 +271,7 @@
                                     <h5 class="font-semibold">{{ hotel.name }}</h5>
                                     <p class="text-xs text-gray-600">{{ hotel.date }} | {{ hotel.address }}</p>
                                     <button @click="openMap(hotel.address)" class="text-xs text-jp-blue-dark mt-1 hover:underline">
-                                        <i class="fas fa-location-arrow mr-1"></i> Google 導航
+                                        <i class="fas fa-map-marker-alt mr-1"></i> 顯示地圖位置
                                     </button>
                                 </template>
                             </div>
@@ -415,7 +415,7 @@
             
             <div class="mb-4"><label class="block text-sm font-medium text-gray-700">時間 (手機可選時鐘)</label><input type="time" v-model="newItinerary.time" class="mt-1 block w-full border rounded-md p-2"></div>
             <div class="mb-4"><label class="block text-sm font-medium text-gray-700">行程名稱</label><input type="text" v-model="newItinerary.name" class="mt-1 block w-full border rounded-md p-2"></div>
-            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">地址 (必填，用於導航)</label><input type="text" v-model="newItinerary.address" class="mt-1 block w-full border rounded-md p-2"></div>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">地址 (必填，用於地圖)</label><input type="text" v-model="newItinerary.address" class="mt-1 block w-full border rounded-md p-2"></div>
             
             <div class="mb-4"><label class="block text-sm font-medium text-gray-700">備註</label><textarea v-model="newItinerary.notes" rows="3" placeholder="例如：預約號碼、特殊飲食需求、交通方式..." class="mt-1 block w-full border rounded-md p-2 resize-none"></textarea></div>
             
@@ -434,7 +434,7 @@
             <template v-if="editingItineraryItem">
                 <div class="mb-4"><label class="block text-sm font-medium text-gray-700">時間 (手機可選時鐘)</label><input type="time" v-model="editingItineraryItem.time" class="mt-1 block w-full border rounded-md p-2"></div>
                 <div class="mb-4"><label class="block text-sm font-medium text-gray-700">行程名稱</label><input type="text" v-model="editingItineraryItem.name" class="mt-1 block w-full border rounded-md p-2"></div>
-                <div class="mb-4"><label class="block text-sm font-medium text-gray-700">地址 (用於導航)</label><input type="text" v-model="editingItineraryItem.address" class="mt-1 block w-full border rounded-md p-2"></div>
+                <div class="mb-4"><label class="block text-sm font-medium text-gray-700">地址 (用於地圖)</label><input type="text" v-model="editingItineraryItem.address" class="mt-1 block w-full border rounded-md p-2"></div>
                 
                 <div class="mb-4"><label class="block text-sm font-medium text-gray-700">備註</label><textarea v-model="editingItineraryItem.notes" rows="3" placeholder="例如：注意事項、預約資訊..." class="mt-1 block w-full border rounded-md p-2 resize-none"></textarea></div>
             </template>
@@ -486,7 +486,7 @@
 <script>
     const { createApp, ref, computed } = Vue;
 
-    // --- 全域輔助函式與常量 (已更新) ---
+    // --- 全域輔助函式與常量 ---
     const CATEGORY_MAP = {
         food: { label: '飲食', icon: 'fas fa-utensils', color: 'border-yellow-500' },
         transport: { label: '交通', icon: 'fas fa-bus', color: 'border-blue-500' },
@@ -496,11 +496,10 @@
         other: { label: '其他', icon: 'fas fa-tag', color: 'border-gray-500' },
     };
     
-    // **新的英文縮寫常數**
     const DAY_MAP = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; // 英文星期縮寫
     const MONTH_MAP = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']; // 英文月份縮寫
     
-    // **更新 getDayOfWeek (回傳英文星期縮寫)**
+    // 回傳英文星期縮寫
     const getDayOfWeek = (dateString) => {
         const date = new Date(dateString);
         // 確保日期是正確的本地日期，處理時區偏移
@@ -508,7 +507,7 @@
         return DAY_MAP[date.getDay()]; 
     };
     
-    // **新增 getMonthAbbreviation (回傳英文月份縮寫)**
+    // 回傳英文月份縮寫
     const getMonthAbbreviation = (dateString) => {
          const date = new Date(dateString);
          date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
@@ -520,10 +519,11 @@
     const getCategoryLabel = (category) => CATEGORY_MAP[category]?.label || '未知';
     const formatNumber = (num) => (num || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
     
+    // 【修正區域】: 將 Google Maps 連結改為僅顯示位置 (使用 search api)
     const openMap = (address) => {
-        if (!address) return alert('地址資料缺失，無法導航。');
-        // 使用 Google Maps 導航連結
-        window.open(`https://www.google.com/maps/dir/?api=1&destination=$${encodeURIComponent(address)}`, '_blank');
+        if (!address) return alert('地址資料缺失，無法顯示地圖。');
+        // 使用 Google Maps Search API 連結，只顯示該地點，不開啟導航
+        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`, '_blank');
     };
 
     const generateDateRange = (start, end) => {
@@ -575,7 +575,7 @@
             });
 
 
-            // 模擬的多個旅遊計畫數據 (行程已加入備註)
+            // 模擬的多個旅遊計畫數據
             const trips = ref([
                 { 
                     id: 1, 
@@ -953,14 +953,14 @@
                 saveEditedItineraryItem, 
                 // 計算屬性
                 sortedCurrentItinerary, 
-                // 輔助函式 (已更新)
-                openMap,
+                // 輔助函式
+                openMap, // 【已修正】
                 formatNumber,
                 getCategoryColorClass,
                 getCategoryIcon,
                 getCategoryLabel,
                 getDayOfWeek,
-                getMonthAbbreviation // 新增的月份縮寫函式
+                getMonthAbbreviation
             };
         }
     }).mount('#app');
