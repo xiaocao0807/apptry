@@ -69,6 +69,19 @@
             justify-content: center;
             cursor: pointer;
         }
+        
+        /* ====== 新增 CSS：隱藏滑軸 ====== */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none; /* For Chrome, Safari, and Opera */
+            width: 0;      
+            height: 0;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        /* ================================ */
     </style>
 </head>
 <body>
@@ -167,7 +180,7 @@
             
             <div v-if="selectedTrip.data.currentTab === 'itinerary'" class="space-y-4">
                 
-                <div class="flex overflow-x-auto whitespace-nowrap space-x-3 p-2 border rounded-xl bg-jp-white">
+                <div class="flex overflow-x-auto whitespace-nowrap space-x-3 p-2 border rounded-xl bg-jp-white hide-scrollbar">
                     <div v-for="(date, index) in selectedTrip.data.dates" :key="index"
                          @click="selectedTrip.data.selectedDateIndex = index"
                          :class="['date-card p-2 rounded-xl transition-colors duration-200 shadow-sm', 
