@@ -84,7 +84,7 @@
         }
 
         /* ================================================= */
-        /* 【修正】行程卡片底圖與 50% 漸層樣式 */
+        /* 【最終修正】行程卡片底圖與 40%-70% 漸層樣式 */
         /* ================================================= */
         .itinerary-card {
             background-color: white; /* 預設背景色 */
@@ -101,9 +101,10 @@
             height: 100%;
             background-size: cover;
             background-position: center;
-            /* 使用 mask-image 實現水墨漸層效果：左側 50% 實色，之後漸層變白 */
-            mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 95%, rgba(0,0,0,0) 100%);
-            -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 95%, rgba(0,0,0,0) 100%);
+            /* 使用 mask-image 實現水墨漸層效果： 
+               0%-40% 實色, 40%-70% 漸變到透明, 70%-100% 透明 */
+            mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 70%, rgba(0,0,0,0) 100%);
+            -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 70%, rgba(0,0,0,0) 100%);
             z-index: 1; /* 位於卡片內容之下 */
         }
         
@@ -708,7 +709,7 @@
                 },
                 { id: 2, name: '2026 澳洲自駕遊', startDate: '2026-03-01', endDate: '2026-03-15', type: '自駕遊', data: { currentTab: 'itinerary', currencyInput: 0, dates: generateDateRange('2026-03-01', '2026-03-15'), selectedDateIndex: 0, itineraryData: {}, hotels: [], shoppingList: [], expenses: [] } },
                 { id: 3, name: '2025 東京賞櫻', startDate: '2025-04-01', endDate: '2025-04-07', type: '情侶旅行', data: { currentTab: 'itinerary', currencyInput: 0, dates: generateDateRange('2025-04-01', '2025-04-07'), selectedDateIndex: 0, itineraryData: {}, hotels: [], shoppingList: [], expenses: [] } },
-                { id: 4, name: '2024 沖繩潛水之旅 (已完成)', startDate: '2024-08-10', endDate: '2024-08-15', type: '主題旅行', data: { currentTab: 'itinerary', currencyInput: 0, dates: generateDateRange('2024-08-10', '2024-08-15'), selectedDateIndex: 0, itineraryData: {}, hotels: [], shoppingList: [], expenses: [] } },
+                { id: 4, name: '2024 沖繩潛水之旅 (已完成)', startDate: '2024-08-10', endDate: '2024-08-15', type: '主題旅行', data: { currentTab: 'itinerary', currencyInput: 0, dates: generateDateRange('2024-08-10', '2024-08-15'), selectedDateIndex: 0, itineraryData: {}, hotels: [], shoppingList: [], expenses: [] } }
             ]);
             
             // 底部導航 Tab 列表
