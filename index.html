@@ -87,9 +87,9 @@
         /* 行程卡片底圖與 40%-70% 漸層樣式 (不變) */
         /* ================================================= */
         .itinerary-card {
-            background-color: white; /* 預設背景色 */
+            background-color: white; 
             position: relative;
-            overflow: hidden; /* 確保內容不會溢出圓角 */
+            overflow: hidden; 
             transition: all 0.3s ease;
         }
 
@@ -101,47 +101,33 @@
             height: 100%;
             background-size: cover;
             background-position: center;
-            /* 使用 mask-image 實現水墨漸層效果： 
-               0%-40% 實色, 40%-70% 漸變到透明, 70%-100% 透明 */
+            /* 使用 mask-image 實現水墨漸層效果 */
             mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 70%, rgba(0,0,0,0) 100%);
             -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 70%, rgba(0,0,0,0) 100%);
-            z-index: 1; /* 位於卡片內容之下 */
+            z-index: 1; 
         }
         
         /* 確保內容層疊在背景圖之上 */
         .itinerary-content-wrapper {
             position: relative;
             z-index: 2;
-            display: flex; /* 啟用 Flexbox */
-            align-items: flex-start; /* 頂部對齊 */
+            display: flex; 
+            align-items: flex-start; 
             width: 100%;
         }
         
-        /* 備註樣式：gray-100 */
-        .itinerary-notes {
-             border-left: none !important; 
-             padding: 8px 12px; 
-             background-color: #F3F4F6 !important; /* gray-100 */
-             border-radius: 8px; 
-             margin-top: 8px;
-             font-size: 0.875rem; 
-             color: theme('colors.gray.700');
-             white-space: pre-wrap;
-             box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); 
-        }
-
         /* ================================================= */
-        /* 行程時間軸樣式修正 */
+        /* 左側欄位樣式 */
         /* ================================================= */
 
         /* 讓左側的 時間/分類 圖示區塊更突出 */
         .itinerary-left-column {
             display: flex;
-            flex-direction: column; /* 垂直佈局 */
+            flex-direction: column; 
             align-items: center;
             flex-shrink: 0;
-            margin-right: 15px; /* 與右側內容區的間距 */
-            width: 50px; /* 固定寬度 */
+            margin-right: 15px; 
+            width: 50px; 
         }
 
         /* 增大行程類別圖示 */
@@ -152,12 +138,12 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            margin-bottom: 4px; /* 與時間的間距 */
+            margin-bottom: 4px; 
         }
 
         /* 修正時間文字大小和顏色 */
         .itinerary-time {
-            font-size: 0.75rem; /* text-xs */
+            font-size: 0.75rem; 
             color: theme('colors.gray.600');
             font-weight: 500;
         }
@@ -167,17 +153,17 @@
         /* ================================================= */
         .action-button-group {
             position: absolute;
-            top: 8px; /* 稍微靠上 */
+            top: 8px; 
             right: 8px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px; /* 增加按鈕間距 */
+            gap: 6px; 
             z-index: 10;
         }
 
         .action-button-circle {
-            width: 28px; /* 圓形尺寸 */
+            width: 28px; 
             height: 28px;
             display: flex;
             align-items: center;
@@ -195,6 +181,54 @@
             border-color: theme('colors.jp-blue-dark');
             background-color: theme('colors.gray.50');
         }
+        
+        /* ================================================= */
+        /* *** 核心修正區域：解決重疊問題與備註滑動 *** */
+        /* ================================================= */
+
+        /* 中央內容區，用於限制寬度，避免與右側按鈕重疊 */
+        .itinerary-main-content {
+            flex-grow: 1; 
+            /* 總寬度減去 (左側欄位寬度 50px + 左側邊距 15px + 右側按鈕安全邊距約 40px) */
+            /* 這樣內容區 Max-Width = 100% - 105px */
+            width: calc(100% - 105px); 
+            max-width: calc(100% - 105px); 
+        }
+
+        /* 行程名稱/地址：使用 Tailwind 的 truncate 配合父容器的限制寬度來截斷 */
+        .itinerary-main-content h4,
+        .itinerary-main-content p.truncate {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%; /* 確保文本不會超過它的限制容器 */
+        }
+        
+        /* 備註樣式：實現左右滾動和單行顯示 */
+        .itinerary-notes {
+             border-left: none !important; 
+             padding: 8px 12px; 
+             background-color: #F3F4F6 !important; 
+             border-radius: 8px; 
+             margin-top: 8px;
+             font-size: 0.875rem; 
+             color: theme('colors.gray.700');
+             box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); 
+             
+             /* 核心修正：單行顯示並允許水平滾動 */
+             white-space: nowrap; 
+             overflow-x: auto;    
+             max-width: 100%;     
+             
+             /* 隱藏備註的水平滑動條 */
+             -ms-overflow-style: none;  
+             scrollbar-width: none;  
+        }
+
+        .itinerary-notes::-webkit-scrollbar {
+            display: none; 
+        }
+
 
         /* ================================================= */
         /* 行程點線過渡效果 */
@@ -207,12 +241,12 @@
         .timeline-connector {
             position: absolute;
             /* 定位到左側圖示區的中央下方 */
-            top: 70px; /* 從卡片頂部開始計算，比圖示高度略多 */
-            left: 27px; /* 50px寬度的一半 + 5px 左邊距 (卡片內邊距 16px - 左側 5px margin 調整) -> 20px 寬度/2 + 邊距*/
+            top: 70px; 
+            left: 27px; 
             width: 0;
-            height: calc(100% - 70px); /* 讓虛線延伸到卡片底部 */
+            height: calc(100% - 70px); 
             border-left: 1px dotted theme('colors.gray.400');
-            z-index: 0; /* 確保它位於卡片內容之下 */
+            z-index: 0; 
         }
         /* 移除最後一個項目的連接線 */
         .itinerary-item-wrapper:last-child .timeline-connector {
@@ -355,12 +389,12 @@
                                     <p class="itinerary-time">{{ item.time || '未定' }}</p>
                                 </div>
                                 
-                                <div class="flex-1">
+                                <div class="itinerary-main-content">
                                     <h4 class="text-lg font-semibold text-gray-800">{{ item.name }}</h4>
                                     <p class="text-xs text-gray-600 truncate">{{ item.address }}</p>
                                     
                                     <p v-if="item.notes" 
-                                       class="itinerary-notes whitespace-pre-wrap">
+                                       class="itinerary-notes">
                                         <i class="fas fa-sticky-note mr-1 text-gray-500"></i> {{ item.notes }}
                                     </p>
                                 </div>
@@ -782,7 +816,7 @@
             const newHotel = ref({ name: '', date: '', address: '' });
             const newItinerary = ref({ 
                 time: '', name: '', address: '', notes: '', category: 'attraction', 
-                imageURL: '', imageOpacity: 20 // 預設透明度 20%
+                imageURL: '', imageOpacity: 20 
             }); 
             const editingTripData = ref({ 
                 id: null, name: '', startDate: '', endDate: '', type: '',
@@ -805,7 +839,7 @@
                         itineraryData: {
                             0: [
                                 // 測試資料：圖片、透明度、備註顏色
-                                { time: '09:00', name: '新千歲機場 (CTS)', address: '北海道千歳市美々', notes: '預計搭乘 JAL 123 班機，記得領取行李後，直接去購買 JR Pass。', category: 'flight', imageURL: 'https://images.unsplash.com/photo-1542456073-61a7c4f48866?q=80&w=200&h=100&auto=format&fit=crop', imageOpacity: 40 }, 
+                                { time: '09:00', name: '新千歲機場 (CTS)', address: '北海道千歳市美々', notes: '預計搭乘 JAL 123 班機，記得領取行李後，直接去購買 JR Pass，這是一段非常長的測試文字來檢查是否會超出範圍。', category: 'flight', imageURL: 'https://images.unsplash.com/photo-1542456073-61a7c4f48866?q=80&w=200&h=100&auto=format&fit=crop', imageOpacity: 40 }, 
                                 { time: '12:00', name: '海鮮午餐', address: '北海道札幌市中央区南４条西４丁目１', notes: '午餐預計在場外市場用餐，目標是帝王蟹！', category: 'food', imageURL: 'https://images.unsplash.com/photo-1596707328639-652a6a6f1943?q=80&w=200&h=100&auto=format&fit=crop', imageOpacity: 60 },
                                 { time: '15:00', name: '大通公園', address: '北海道札幌市中央区大通西７丁目', notes: '確認是否有雪祭活動', category: 'attraction', imageURL: 'https://images.unsplash.com/photo-1517036979204-c368d18e9a2b?q=80&w=200&h=100&auto=format&fit=crop', imageOpacity: 70 },
                                 { time: '18:30', name: '札幌電視塔', address: '北海道札幌市中央区大通西１丁目', notes: '請確認營業時間至晚上 9 點。', category: 'attraction', imageURL: '', imageOpacity: 50 },
@@ -890,9 +924,7 @@
                     .map((item, originalIndex) => ({ 
                         ...item, 
                         originalIndex,
-                        // 確保圖片屬性有預設值
                         imageURL: item.imageURL || '', 
-                        // 若既有項目未設定透明度，預設值為 20
                         imageOpacity: item.imageOpacity !== undefined ? item.imageOpacity : 20 
                     })) 
                     .sort((a, b) => {
@@ -1195,7 +1227,7 @@
                 addItineraryItem, 
                 openEditItineraryModal, 
                 saveEditedItineraryItem, 
-                confirmRemoveItineraryItem, // 新增的刪除確認方法
+                confirmRemoveItineraryItem, 
                 // 計算屬性
                 sortedCurrentItinerary, 
                 // 輔助函式
