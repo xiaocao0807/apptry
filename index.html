@@ -59,6 +59,16 @@
         .modal {
             z-index: 40; 
         }
+        
+        /* 針對日期滑軸卡片的樣式 */
+        .date-card {
+            min-width: 80px; /* 固定卡片寬度 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -166,45 +176,42 @@
             
             <div v-if="selectedTrip.data.currentTab === 'itinerary'" class="space-y-4">
                 
-                <div class="flex justify-between items-center p-2 border-b">
-                    <h3 class="text-lg font-bold text-jp-blue-dark">
-                        {{ new Date(selectedTrip.data.dates[selectedTrip.data.selectedDateIndex]).toLocaleDateString() }} 行程
-                    </h3>
-                    <div></div>
-                </div>
-                
                 <div class="flex overflow-x-auto whitespace-nowrap space-x-3 p-2 border rounded-xl bg-jp-white">
-                    <button v-for="(date, index) in selectedTrip.data.dates" :key="index"
-                            @click="selectedTrip.data.selectedDateIndex = index"
-                            :class="['px-4 py-2 text-sm rounded-full transition-colors duration-200', 
-                                     selectedTrip.data.selectedDateIndex === index ? 'bg-jp-blue-dark text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100']">
-                        {{ new Date(date).getMonth() + 1 }}/{{ new Date(date).getDate() }} (Day {{ index + 1 }})
-                    </button>
+                    <div v-for="(date, index) in selectedTrip.data.dates" :key="index"
+                         @click="selectedTrip.data.selectedDateIndex = index"
+                         :class="['date-card p-2 rounded-xl transition-colors duration-200 shadow-sm', 
+                                  selectedTrip.data.selectedDateIndex === index ? 'bg-jp-blue-dark text-white' : 'bg-white text-gray-700 hover:bg-gray-100']">
+                        <span class="text-lg font-bold">
+                            {{ new Date(date).getDate() }}
+                        </span>
+                        <span class="text-xs opacity-80 mt-1">
+                            {{ getDayOfWeek(date) }}
+                        </span>
+                    </div>
                 </div>
                 
-                <div v-if="sortedCurrentItinerary.length" class="space-y-3">
+                <div v-if="sortedCurrentItinerary.length" class="space-y-3 pt-2">
                     <div v-for="item in sortedCurrentItinerary" :key="item.originalIndex"
                          class="bg-white p-4 rounded-xl shadow-md border-l-4 border-jp-blue-light relative">
                         
-                        <button @click="openEditItineraryModal(item)" 
-                                class="absolute top-2 right-2 text-gray-500 hover:text-jp-blue-dark p-1 rounded-full bg-white/70 transition duration-150 z-10">
-                            <i class="fas fa-pen"></i>
-                        </button>
-                        
-                        <div class="flex items-start">
-                            <div class="flex-1 mr-3">
-                                <p class="text-sm text-gray-500 font-medium">{{ item.time || '未定' }}</p>
-                                <h4 class="text-lg font-semibold text-gray-800">{{ item.name }}</h4>
-                                <p class="text-xs text-gray-600 truncate">{{ item.address }}</p>
-                                <p v-if="item.notes" class="text-sm text-gray-700 mt-2 p-2 border-l-2 border-jp-accent-pink bg-jp-accent-pink/10 whitespace-pre-wrap">
-                                    <i class="fas fa-sticky-note mr-1"></i> {{ item.notes }}
-                                </p>
-                            </div>
-                            
-                            <button v-if="item.address" @click="openMap(item.address)" 
-                                class="text-jp-blue-dark hover:text-jp-blue-dark/80 ml-2 mt-1 p-1 flex-shrink-0">
-                                <i class="fas fa-location-arrow"></i>
+                        <div class="absolute top-2 right-2 flex flex-col items-center space-y-1 z-10">
+                            <button @click="openEditItineraryModal(item)" 
+                                    class="text-gray-500 hover:text-jp-blue-dark p-1 rounded-full bg-white/70 transition duration-150">
+                                <i class="fas fa-pen"></i>
                             </button>
+                            <button v-if="item.address" @click="openMap(item.address)" 
+                                    class="text-jp-blue-dark hover:text-jp-blue-dark/80 p-1 rounded-full bg-white/70 transition duration-150">
+                                <i class="fas fa-location-arrow text-sm"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="mr-12">
+                            <p class="text-sm text-gray-500 font-medium">{{ item.time || '未定' }}</p>
+                            <h4 class="text-lg font-semibold text-gray-800">{{ item.name }}</h4>
+                            <p class="text-xs text-gray-600 truncate">{{ item.address }}</p>
+                            <p v-if="item.notes" class="text-sm text-gray-700 mt-2 p-2 border-l-2 border-jp-accent-pink bg-jp-accent-pink/10 whitespace-pre-wrap">
+                                <i class="fas fa-sticky-note mr-1"></i> {{ item.notes }}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -466,6 +473,15 @@
         other: { label: '其他', icon: 'fas fa-tag', color: 'border-gray-500' },
     };
     
+    const DAY_MAP = ['日', '一', '二', '三', '四', '五', '六']; // 中文星期
+    
+    const getDayOfWeek = (dateString) => {
+        const date = new Date(dateString);
+        // 確保日期是正確的本地日期，處理時區偏移
+        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+        return DAY_MAP[date.getDay()]; 
+    };
+    
     const getCategoryColorClass = (category) => CATEGORY_MAP[category]?.color || 'border-gray-300';
     const getCategoryIcon = (category) => CATEGORY_MAP[category]?.icon || 'fas fa-question';
     const getCategoryLabel = (category) => CATEGORY_MAP[category]?.label || '未知';
@@ -473,7 +489,8 @@
     
     const openMap = (address) => {
         if (!address) return alert('地址資料缺失，無法導航。');
-        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`, '_blank');
+        // 使用 Google Maps 導航連結
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`, '_blank');
     };
 
     const generateDateRange = (start, end) => {
@@ -507,9 +524,8 @@
             const showAddItineraryModal = ref(false); 
             const showEditTripModal = ref(false); 
             
-            // 【新增/修改】行程編輯專用狀態
-            const showEditItineraryModal = ref(false); // 獨立的編輯 Modal
-            const editingItineraryItem = ref(null); // 正在編輯的行程項目數據 (包含 originalIndex)
+            const showEditItineraryModal = ref(false); 
+            const editingItineraryItem = ref(null); 
 
             const isHotelEditMode = ref(false); 
 
@@ -544,7 +560,7 @@
                                 { time: '09:00', name: '新千歲機場 (CTS)', address: '北海道千歳市美々', notes: '預計搭乘 JAL 123 班機，記得領取行李後，直接去購買 JR Pass。' }, 
                                 { time: '12:00', name: '海鮮午餐', address: '北海道札幌市中央区南４条西４丁目１', notes: '午餐預計在場外市場用餐，目標是帝王蟹！' },
                                 { time: '18:30', name: '札幌電視塔', address: '北海道札幌市中央区大通西１丁目', notes: '' },
-                                { time: '15:00', name: '大通公園', address: '北海道札幌市中央区大通西７丁目', notes: '確認是否有雪祭活動' }, // 故意亂序，測試排序功能
+                                { time: '15:00', name: '大通公園', address: '北海道札幌市中央区大通西７丁目', notes: '確認是否有雪祭活動' }, 
                             ],
                             1: [{ time: '10:30', name: '白色戀人公園', address: '北海道札幌市西区宮の沢２条２丁目１１−36', notes: '建議停留 2.5 小時，要買限定餅乾。' }], 
                         },
@@ -609,7 +625,7 @@
                 return [...upcomingTrips.value, ...completedTrips.value];
             });
             
-            // 【修改】行程列表：計算屬性，用於排序和傳遞原始索引
+            // 行程列表：計算屬性，用於排序和傳遞原始索引
             const sortedCurrentItinerary = computed(() => {
                 if (!selectedTrip.value) return [];
                 const index = selectedTrip.value.data.selectedDateIndex;
@@ -624,7 +640,7 @@
                 return itinerary
                     .map((item, originalIndex) => ({ ...item, originalIndex })) 
                     .sort((a, b) => {
-                        // 排序邏輯：沒有時間的排在最前面/最後面（選擇放在最後）
+                        // 排序邏輯：沒有時間的排在最後面
                         if (!a.time && !b.time) return 0;
                         if (!a.time) return 1; 
                         if (!b.time) return -1;
@@ -634,7 +650,7 @@
 
 
             // --- 方法 ---
-
+            
             const goToTrip = (trip) => {
                 selectedTrip.value = trip;
                 currentView.value = 'tripDetail';
@@ -752,14 +768,13 @@
                 selectedTrip.value = decoratedTrips.value.find(t => t.id === data.id);
             };
 
-            // 【新增】開啟編輯行程項目 Modal
+            // 開啟編輯行程項目 Modal
             const openEditItineraryModal = (item) => {
-                // 複製項目數據，包含我們添加的 originalIndex
                 editingItineraryItem.value = { ...item }; 
                 showEditItineraryModal.value = true;
             };
 
-            // 【新增】儲存編輯後的行程項目
+            // 儲存編輯後的行程項目
             const saveEditedItineraryItem = () => {
                 const itemToSave = editingItineraryItem.value;
                 if (!itemToSave.name || !itemToSave.address) {
@@ -768,7 +783,7 @@
                 }
 
                 const currentItineraryList = selectedTrip.value.data.itineraryData[selectedTrip.value.data.selectedDateIndex];
-                const originalIndex = itemToSave.originalIndex; // 取得原始索引
+                const originalIndex = itemToSave.originalIndex; 
 
                 if (originalIndex !== undefined && currentItineraryList[originalIndex]) {
                     // 更新原始項目數據
@@ -785,7 +800,7 @@
                 showEditItineraryModal.value = false;
             };
 
-            // 【修改】新增行程項目 (不再設定 isItineraryEditMode)
+            // 新增行程項目
             const addItineraryItem = () => {
                 if (!newItinerary.value.name || !newItinerary.value.address) {
                     alert('行程名稱和地址為必填項！');
@@ -806,13 +821,13 @@
                 showAddItineraryModal.value = false;
             };
             
-            // 【修改】移除行程項目 (從編輯 Modal 內部呼叫)
+            // 移除行程項目 (從編輯 Modal 內部呼叫)
             const removeItineraryItem = () => {
                 if (confirm('確定要刪除此行程嗎？')) {
                     const originalIndex = editingItineraryItem.value.originalIndex;
                     const currentItineraryList = selectedTrip.value.data.itineraryData[selectedTrip.value.data.selectedDateIndex];
                     
-                    if (originalIndex !== undefined && currentItineraryList[originalIndex]) {
+                    if (originalIndex !== undefined && currentItineraryList[originalIndex] !== undefined) {
                         currentItineraryList.splice(originalIndex, 1);
                     }
 
@@ -873,8 +888,9 @@
                 showExpenseModal,
                 showAddHotelModal,
                 showAddItineraryModal, 
-                showEditTripModal, // 新增
-                editingItineraryItem, // 新增
+                showEditTripModal,
+                showEditItineraryModal, // 暴露新的 modal 狀態
+                editingItineraryItem, 
                 isHotelEditMode, 
                 newTripName,
                 newTripStartDate,
@@ -899,16 +915,17 @@
                 removeHotel, 
                 addItineraryItem, 
                 removeItineraryItem, 
-                openEditItineraryModal, // 新增
-                saveEditedItineraryItem, // 新增
+                openEditItineraryModal, 
+                saveEditedItineraryItem, 
                 // 計算屬性
-                sortedCurrentItinerary, // 新增
+                sortedCurrentItinerary, 
                 // 輔助函式
                 openMap,
                 formatNumber,
                 getCategoryColorClass,
                 getCategoryIcon,
                 getCategoryLabel,
+                getDayOfWeek // 暴露新的輔助函式
             };
         }
     }).mount('#app');
