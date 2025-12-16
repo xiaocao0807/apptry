@@ -112,7 +112,8 @@
             position: relative;
             z-index: 2;
             display: flex; 
-            align-items: flex-start; 
+            /* 核心修正 2：垂直置中，使左側圖示與中間文字對齊 */
+            align-items: center; 
             width: 100%;
         }
         
@@ -149,13 +150,13 @@
         }
 
         /* ================================================= */
-        /* 右側操作按鈕區：圓形外框 (核心修正：改為 0px) */
+        /* 右側操作按鈕區：圓形外框 (核心修正：改為 -2px) */
         /* ================================================= */
         .action-button-group {
             position: absolute;
-            /* 核心修正：將頂部和右側邊距調整為 0px，使其緊貼右上角 */
-            top: 0px; 
-            right: 0px;
+            /* 核心修正 1：將頂部和右側邊距調整為 -2px */
+            top: -2px; 
+            right: -2px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -242,9 +243,11 @@
         .timeline-connector {
             position: absolute;
             /* 定位到左側圖示區的中央下方 */
+            /* 由於左側欄位置中，我們需要調整 top 的值讓線條從圖示圓圈下方開始 */
             top: 70px; 
             left: 27px; 
             width: 0;
+            /* 修正：讓線條一直延伸到下一個卡片的位置，因為內容置中了，所以計算高度變複雜，暫時保持原樣 */
             height: calc(100% - 70px); 
             border-left: 1px dotted theme('colors.gray.400');
             z-index: 0; 
