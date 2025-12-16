@@ -68,9 +68,11 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            /* 調整高度讓三行文字舒適顯示 */
+            height: 70px; 
         }
         
-        /* ====== 新增 CSS：隱藏滑軸 ====== */
+        /* 新增 CSS：隱藏滑軸 */
         .hide-scrollbar::-webkit-scrollbar {
             display: none; /* For Chrome, Safari, and Opera */
             width: 0;      
@@ -81,7 +83,6 @@
             -ms-overflow-style: none;  /* IE and Edge */
             scrollbar-width: none;  /* Firefox */
         }
-        /* ================================ */
     </style>
 </head>
 <body>
@@ -185,10 +186,16 @@
                          @click="selectedTrip.data.selectedDateIndex = index"
                          :class="['date-card p-2 rounded-xl transition-colors duration-200 shadow-sm', 
                                   selectedTrip.data.selectedDateIndex === index ? 'bg-jp-blue-dark text-white' : 'bg-white text-gray-700 hover:bg-gray-100']">
+                        
+                        <span class="text-xs opacity-80">
+                            {{ getMonthAbbreviation(date) }}
+                        </span>
+                        
                         <span class="text-lg font-bold">
                             {{ new Date(date).getDate() }}
                         </span>
-                        <span class="text-xs opacity-80 mt-1">
+                        
+                        <span class="text-xs opacity-80">
                             {{ getDayOfWeek(date) }}
                         </span>
                     </div>
@@ -479,7 +486,7 @@
 <script>
     const { createApp, ref, computed } = Vue;
 
-    // --- 全域輔助函式與常量 ---
+    // --- 全域輔助函式與常量 (已更新) ---
     const CATEGORY_MAP = {
         food: { label: '飲食', icon: 'fas fa-utensils', color: 'border-yellow-500' },
         transport: { label: '交通', icon: 'fas fa-bus', color: 'border-blue-500' },
@@ -489,13 +496,23 @@
         other: { label: '其他', icon: 'fas fa-tag', color: 'border-gray-500' },
     };
     
-    const DAY_MAP = ['日', '一', '二', '三', '四', '五', '六']; // 中文星期
+    // **新的英文縮寫常數**
+    const DAY_MAP = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; // 英文星期縮寫
+    const MONTH_MAP = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']; // 英文月份縮寫
     
+    // **更新 getDayOfWeek (回傳英文星期縮寫)**
     const getDayOfWeek = (dateString) => {
         const date = new Date(dateString);
         // 確保日期是正確的本地日期，處理時區偏移
         date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
         return DAY_MAP[date.getDay()]; 
+    };
+    
+    // **新增 getMonthAbbreviation (回傳英文月份縮寫)**
+    const getMonthAbbreviation = (dateString) => {
+         const date = new Date(dateString);
+         date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+         return MONTH_MAP[date.getMonth()];
     };
     
     const getCategoryColorClass = (category) => CATEGORY_MAP[category]?.color || 'border-gray-300';
@@ -936,13 +953,14 @@
                 saveEditedItineraryItem, 
                 // 計算屬性
                 sortedCurrentItinerary, 
-                // 輔助函式
+                // 輔助函式 (已更新)
                 openMap,
                 formatNumber,
                 getCategoryColorClass,
                 getCategoryIcon,
                 getCategoryLabel,
-                getDayOfWeek 
+                getDayOfWeek,
+                getMonthAbbreviation // 新增的月份縮寫函式
             };
         }
     }).mount('#app');
