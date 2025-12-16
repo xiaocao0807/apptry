@@ -149,13 +149,13 @@
         }
 
         /* ================================================= */
-        /* 右側操作按鈕區：圓形外框 (再次修正定位) */
+        /* 右側操作按鈕區：圓形外框 (核心修正：改為 0px) */
         /* ================================================= */
         .action-button-group {
             position: absolute;
-            /* 核心修正：將頂部和右側邊距從 4px 進一步減少到 2px */
-            top: 2px; 
-            right: 2px;
+            /* 核心修正：將頂部和右側邊距調整為 0px，使其緊貼右上角 */
+            top: 0px; 
+            right: 0px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -713,7 +713,7 @@
 </div>
 
 <script>
-    const { createApp, ref, computed } = Vue;
+    const { createApp, ref, computed, watch } = Vue;
 
     // --- 全域輔助函式與常量 ---
     
@@ -788,12 +788,78 @@
     };
 
 
+    // --- 資料持久化設定 (Local Storage) ---
+    const STORAGE_KEY = 'travel_dashboard_trips'; 
+    
+    // 預設的模擬旅遊計畫數據
+    const MOCK_TRIPS = [
+        { 
+            id: 1, 
+            name: '2026 北海道家族旅行', 
+            startDate: '2025-12-15', 
+            endDate: '2025-12-22', 
+            type: '家族旅行',
+            data: {
+                currentTab: 'itinerary',
+                currencyInput: 10000, 
+                dates: generateDateRange('2025-12-15', '2025-12-22'),
+                selectedDateIndex: 0,
+                itineraryData: {
+                    0: [
+                        { time: '09:00', name: '新千歲機場 (CTS)', address: '北海道千歳市美々', notes: '預計搭乘 JAL 123 班機，記得領取行李後，直接去購買 JR Pass，這是一段非常長的測試文字來檢查是否會超出範圍。', category: 'flight', imageURL: 'https://images.unsplash.com/photo-1542456073-61a7c4f48866?q=80&w=200&h=100&auto=format&fit=crop', imageOpacity: 40 }, 
+                        { time: '12:00', name: '海鮮午餐', address: '北海道札幌市中央区南４条西４丁目１', notes: '午餐預計在場外市場用餐，目標是帝王蟹！', category: 'food', imageURL: 'https://images.unsplash.com/photo-1596707328639-652a6a6f1943?q=80&w=200&h=100&auto=format&fit=crop', imageOpacity: 60 },
+                        { time: '15:00', name: '大通公園', address: '北海道札幌市中央区大通西７丁目', notes: '確認是否有雪祭活動', category: 'attraction', imageURL: 'https://images.unsplash.com/photo-1517036979204-c368d18e9a2b?q=80&w=200&h=100&auto=format&fit=crop', imageOpacity: 70 },
+                        { time: '18:30', name: '札幌電視塔', address: '北海道札幌市中央区大通西１丁目', notes: '請確認營業時間至晚上 9 點。', category: 'attraction', imageURL: '', imageOpacity: 50 },
+                    ],
+                    1: [{ time: '10:30', name: '白色戀人公園', address: '北海道札幌市西区宮の沢２条２丁目１１−36', notes: '建議停留 2.5 小時，要買限定餅乾。', category: 'attraction', imageURL: '', imageOpacity: 50 }], 
+                },
+                hotels: [
+                    { date: '12/15-12/18', name: '札幌公園飯店', address: '北海道札幌市中央区南９条西３丁目' },
+                    { date: '12/19-12-22', name: '星野度假村', address: '北海道勇払郡占冠村中トマム' },
+                ],
+                shoppingList: [{ name: '薯條三兄弟', price: 1500, isBought: false }, { name: '白色戀人', price: 1800, isBought: true }],
+                expenses: [
+                    { name: '機場巴士', amount: 1200, category: 'transport', date: '2025-12-15', paymentMethod: '現金' },
+                    { name: '札幌拉麵', amount: 4500, category: 'food', date: '2025-12-15', paymentMethod: '信用卡' },
+                ],
+            }
+        },
+        { id: 2, name: '2026 澳洲自駕遊', startDate: '2026-03-01', endDate: '2026-03-15', type: '自駕遊', data: { currentTab: 'itinerary', currencyInput: 0, dates: generateDateRange('2026-03-01', '2026-03-15'), selectedDateIndex: 0, itineraryData: {}, hotels: [], shoppingList: [], expenses: [] } },
+        { id: 3, name: '2025 東京賞櫻', startDate: '2025-04-01', endDate: '2025-04-07', type: '情侶旅行', data: { currentTab: 'itinerary', currencyInput: 0, dates: generateDateRange('2025-04-01', '2025-04-07'), selectedDateIndex: 0, itineraryData: {}, hotels: [], shoppingList: [], expenses: [] } },
+        { id: 4, name: '2024 沖繩潛水之旅 (已完成)', startDate: '2024-08-10', endDate: '2024-08-15', type: '主題旅行', data: { currentTab: 'itinerary', currencyInput: 0, dates: generateDateRange('2024-08-10', '2024-08-15'), selectedDateIndex: 0, itineraryData: {}, hotels: [], shoppingList: [], expenses: [] } }
+    ];
+
+    // 從 localStorage 載入資料
+    const loadData = () => {
+        try {
+            const data = localStorage.getItem(STORAGE_KEY);
+            // 如果找到儲存的資料，則解析並回傳；否則回傳預設的模擬資料
+            return data ? JSON.parse(data) : MOCK_TRIPS;
+        } catch (e) {
+            console.error("Error loading data from localStorage:", e);
+            return MOCK_TRIPS;
+        }
+    };
+    
+    // 將資料儲存到 localStorage
+    const saveData = (data) => {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch (e) {
+            console.error("Error saving data to localStorage:", e);
+        }
+    };
+
+
     createApp({
         setup() {
             // --- 狀態定義 ---
             const currentView = ref('home'); 
             const showCompleted = ref(true); 
             const selectedTrip = ref(null);  
+            
+            // 核心變更: 初始化時從 localStorage 載入資料
+            const trips = ref(loadData()); 
             
             // Modal/編輯狀態
             const showAddTripModal = ref(false); 
@@ -824,45 +890,6 @@
             });
 
 
-            // 模擬的多個旅遊計畫數據
-            const trips = ref([
-                { 
-                    id: 1, 
-                    name: '2026 北海道家族旅行', 
-                    startDate: '2025-12-15', 
-                    endDate: '2025-12-22', 
-                    type: '家族旅行',
-                    data: {
-                        currentTab: 'itinerary',
-                        currencyInput: 10000, 
-                        dates: generateDateRange('2025-12-15', '2025-12-22'),
-                        selectedDateIndex: 0,
-                        itineraryData: {
-                            0: [
-                                // 測試資料：圖片、透明度、備註顏色
-                                { time: '09:00', name: '新千歲機場 (CTS)', address: '北海道千歳市美々', notes: '預計搭乘 JAL 123 班機，記得領取行李後，直接去購買 JR Pass，這是一段非常長的測試文字來檢查是否會超出範圍。', category: 'flight', imageURL: 'https://images.unsplash.com/photo-1542456073-61a7c4f48866?q=80&w=200&h=100&auto=format&fit=crop', imageOpacity: 40 }, 
-                                { time: '12:00', name: '海鮮午餐', address: '北海道札幌市中央区南４条西４丁目１', notes: '午餐預計在場外市場用餐，目標是帝王蟹！', category: 'food', imageURL: 'https://images.unsplash.com/photo-1596707328639-652a6a6f1943?q=80&w=200&h=100&auto=format&fit=crop', imageOpacity: 60 },
-                                { time: '15:00', name: '大通公園', address: '北海道札幌市中央区大通西７丁目', notes: '確認是否有雪祭活動', category: 'attraction', imageURL: 'https://images.unsplash.com/photo-1517036979204-c368d18e9a2b?q=80&w=200&h=100&auto=format&fit=crop', imageOpacity: 70 },
-                                { time: '18:30', name: '札幌電視塔', address: '北海道札幌市中央区大通西１丁目', notes: '請確認營業時間至晚上 9 點。', category: 'attraction', imageURL: '', imageOpacity: 50 },
-                            ],
-                            1: [{ time: '10:30', name: '白色戀人公園', address: '北海道札幌市西区宮の沢２条２丁目１１−36', notes: '建議停留 2.5 小時，要買限定餅乾。', category: 'attraction', imageURL: '', imageOpacity: 50 }], 
-                        },
-                        hotels: [
-                            { date: '12/15-12/18', name: '札幌公園飯店', address: '北海道札幌市中央区南９条西３丁目' },
-                            { date: '12/19-12-22', name: '星野度假村', address: '北海道勇払郡占冠村中トマム' },
-                        ],
-                        shoppingList: [{ name: '薯條三兄弟', price: 1500, isBought: false }, { name: '白色戀人', price: 1800, isBought: true }],
-                        expenses: [
-                            { name: '機場巴士', amount: 1200, category: 'transport', date: '2025-12-15', paymentMethod: '現金' },
-                            { name: '札幌拉麵', amount: 4500, category: 'food', date: '2025-12-15', paymentMethod: '信用卡' },
-                        ],
-                    }
-                },
-                { id: 2, name: '2026 澳洲自駕遊', startDate: '2026-03-01', endDate: '2026-03-15', type: '自駕遊', data: { currentTab: 'itinerary', currencyInput: 0, dates: generateDateRange('2026-03-01', '2026-03-15'), selectedDateIndex: 0, itineraryData: {}, hotels: [], shoppingList: [], expenses: [] } },
-                { id: 3, name: '2025 東京賞櫻', startDate: '2025-04-01', endDate: '2025-04-07', type: '情侶旅行', data: { currentTab: 'itinerary', currencyInput: 0, dates: generateDateRange('2025-04-01', '2025-04-07'), selectedDateIndex: 0, itineraryData: {}, hotels: [], shoppingList: [], expenses: [] } },
-                { id: 4, name: '2024 沖繩潛水之旅 (已完成)', startDate: '2024-08-10', endDate: '2024-08-15', type: '主題旅行', data: { currentTab: 'itinerary', currencyInput: 0, dates: generateDateRange('2024-08-10', '2024-08-15'), selectedDateIndex: 0, itineraryData: {}, hotels: [], shoppingList: [], expenses: [] } }
-            ]);
-            
             // 底部導航 Tab 列表
             const tripTabs = [
                 { id: 'itinerary', label: '行程', icon: 'fas fa-route' },
@@ -870,6 +897,13 @@
                 { id: 'shopping', label: '購物', icon: 'fas fa-shopping-basket' },
                 { id: 'expenses', label: '花費', icon: 'fas fa-yen-sign' },
             ];
+            
+            // --- Watcher ---
+            // 監聽 trips 變動，自動儲存到 localStorage
+            watch(trips, (newVal) => {
+                saveData(newVal);
+            }, { deep: true }); // deep: true 確保內層數據變動也能觸發儲存
+
 
             // --- 計算屬性 ---
             const getTripStatus = (trip) => {
