@@ -114,12 +114,12 @@
             z-index: 2;
         }
         
-        /* 備註樣式：移除所有顏色相關的動態樣式，統一風格 */
+        /* 備註樣式：將底色強制設為 gray-100 (#F3F4F6) */
         .itinerary-notes {
              border-left: none !important; /* 強制移除左側色束 */
              padding: 8px 12px; /* 調整內邊距 */
-             /* *** 修正點：將底色從 gray.100 改為 gray.200 (稍深) *** */
-             background-color: theme('colors.gray.200') !important; /* 稍深的淺灰色底色 */
+             /* *** 修正點：強制將底色設定為 gray-100 (#F3F4F6) *** */
+             background-color: #F3F4F6 !important; /* 非常淺的灰色底色 */
              border-radius: 8px; /* 圓角矩形 */
              margin-top: 8px;
              font-size: 0.875rem; /* text-sm */
