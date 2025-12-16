@@ -45,7 +45,7 @@
             min-height: 100vh;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); /* 增加 App 質感陰影 */
             background-color: white;
-            padding-bottom: 80px; /* 底部空間 */
+            padding-bottom: 80px; /* 底部空間：確保內容不會被底部導航列遮擋 */
         }
         
         /* 頂部導航列的吸頂效果 */
@@ -161,18 +161,9 @@
 
     </main>
 
-    <section v-if="currentView === 'tripDetail'" class="p-4 pt-0">
+    <section v-if="currentView === 'tripDetail'" class="p-4">
         
-        <div class="flex sticky top-[64px] bg-white pt-4 pb-2 z-5 border-b shadow-sm">
-            <button v-for="tab in tripTabs" :key="tab.id" 
-                    @click="selectedTrip.data.currentTab = tab.id"
-                    :class="['flex-1 py-2 text-center text-sm font-semibold transition-all duration-200 border-b-2', 
-                             selectedTrip.data.currentTab === tab.id ? 'border-jp-blue-dark text-jp-blue-dark' : 'border-transparent text-gray-500 hover:text-gray-700']">
-                <i :class="[tab.icon, 'mr-1']"></i> {{ tab.label }}
-            </button>
-        </div>
-
-        <div class="mt-4">
+        <div class="space-y-4">
             
             <div v-if="selectedTrip.data.currentTab === 'itinerary'" class="space-y-4">
                 
@@ -331,8 +322,20 @@
             class="fixed bottom-20 right-5 w-14 h-14 bg-jp-accent-pink text-white rounded-full shadow-lg hover:bg-jp-accent-pink/80 transition duration-300 z-30 flex items-center justify-center text-2xl">
         <i class="fas fa-plus"></i>
     </button>
-
-
+    
+    
+    <nav v-if="currentView === 'tripDetail'" 
+         class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t shadow-2xl max-w-[500px] mx-auto">
+        <div class="flex h-14">
+            <button v-for="tab in tripTabs" :key="tab.id" 
+                    @click="selectedTrip.data.currentTab = tab.id"
+                    :class="['flex-1 flex flex-col items-center justify-center text-xs font-medium transition-colors duration-200', 
+                             selectedTrip.data.currentTab === tab.id ? 'text-jp-blue-dark' : 'text-gray-500 hover:text-jp-blue-dark/80']">
+                <i :class="[tab.icon, 'text-lg']"></i> 
+                <span>{{ tab.label }}</span>
+            </button>
+        </div>
+    </nav>
     <div v-if="showAddTripModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal">
         <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
             <h3 class="text-xl font-bold mb-4 border-b pb-2 text-jp-blue-dark">新增旅遊計畫</h3>
@@ -490,7 +493,7 @@
     const openMap = (address) => {
         if (!address) return alert('地址資料缺失，無法導航。');
         // 使用 Google Maps 導航連結
-        window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`, '_blank');
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=$${encodeURIComponent(address)}`, '_blank');
     };
 
     const generateDateRange = (start, end) => {
@@ -580,6 +583,7 @@
                 { id: 4, name: '2024 沖繩潛水之旅 (已完成)', startDate: '2024-08-10', endDate: '2024-08-15', type: '主題旅行', data: { currentTab: 'itinerary', currencyInput: 0, dates: generateDateRange('2024-08-10', '2024-08-15'), selectedDateIndex: 0, itineraryData: {}, hotels: [], shoppingList: [], expenses: [] } },
             ]);
             
+            // 底部導航 Tab 列表
             const tripTabs = [
                 { id: 'itinerary', label: '行程', icon: 'fas fa-route' },
                 { id: 'info', label: '資訊', icon: 'fas fa-info-circle' },
@@ -889,7 +893,7 @@
                 showAddHotelModal,
                 showAddItineraryModal, 
                 showEditTripModal,
-                showEditItineraryModal, // 暴露新的 modal 狀態
+                showEditItineraryModal, 
                 editingItineraryItem, 
                 isHotelEditMode, 
                 newTripName,
@@ -925,7 +929,7 @@
                 getCategoryColorClass,
                 getCategoryIcon,
                 getCategoryLabel,
-                getDayOfWeek // 暴露新的輔助函式
+                getDayOfWeek 
             };
         }
     }).mount('#app');
