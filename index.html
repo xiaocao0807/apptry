@@ -20,7 +20,7 @@
                         'jp-blue-dark': '#0288D1',       // 深海藍 (文字/強調)
                         'jp-white': '#FAFAFA',           // 柔和白 (背景)
                         'jp-accent-green': '#A5D6A7',    // 活潑綠 (完成標籤)
-                        'jp-accent-pink': '#FFCCBC',     // 櫻花粉 (進行中標籤)
+                        'jp-accent-pink': '#FFCCBC',     // 櫻花粉 (進行中標籤, 浮動按鈕)
                         'jp-accent-yellow': '#FFECB3'    // 待定黃 (未開始標籤)
                     }
                 }
@@ -55,13 +55,9 @@
             z-index: 10;
         }
 
-        /* 行程卡片動畫 */
-        .trip-card {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        }
-        
-        .trip-card-content {
-            flex-grow: 1;
+        /* 確保 Modal 在最上層 */
+        .modal {
+            z-index: 40; 
         }
     </style>
 </head>
@@ -174,15 +170,7 @@
                     <h3 class="text-lg font-bold text-jp-blue-dark">
                         {{ new Date(selectedTrip.data.dates[selectedTrip.data.selectedDateIndex]).toLocaleDateString() }} 行程
                     </h3>
-                    <div class="flex space-x-2">
-                         <button v-if="isItineraryEditMode" @click="showAddItineraryModal = true" class="text-sm text-jp-blue-dark hover:underline flex items-center bg-jp-blue-light/50 px-3 py-1 rounded-full">
-                            <i class="fas fa-plus mr-1"></i> 新增
-                         </button>
-                         <button @click="isItineraryEditMode = !isItineraryEditMode" class="text-sm text-jp-blue-dark hover:underline flex items-center px-3 py-1 rounded-full" :class="isItineraryEditMode ? 'bg-jp-accent-green/50' : 'bg-gray-100'">
-                            <i :class="[isItineraryEditMode ? 'fas fa-check-circle' : 'fas fa-edit', 'mr-1']"></i>
-                            {{ isItineraryEditMode ? '完成' : '編輯' }}
-                         </button>
-                    </div>
+                    <div></div>
                 </div>
                 
                 <div class="flex overflow-x-auto whitespace-nowrap space-x-3 p-2 border rounded-xl bg-jp-white">
@@ -194,37 +182,28 @@
                     </button>
                 </div>
                 
-                <div v-if="getCurrentItinerary().length" class="space-y-3">
-                    <div v-for="(item, itemIndex) in getCurrentItinerary()" :key="itemIndex"
-                         class="bg-white p-4 rounded-xl shadow-md border-l-4 border-jp-blue-light">
+                <div v-if="sortedCurrentItinerary.length" class="space-y-3">
+                    <div v-for="item in sortedCurrentItinerary" :key="item.originalIndex"
+                         class="bg-white p-4 rounded-xl shadow-md border-l-4 border-jp-blue-light relative">
                         
-                        <div class="flex justify-between items-start">
+                        <button @click="openEditItineraryModal(item)" 
+                                class="absolute top-2 right-2 text-gray-500 hover:text-jp-blue-dark p-1 rounded-full bg-white/70 transition duration-150 z-10">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        
+                        <div class="flex items-start">
                             <div class="flex-1 mr-3">
-                                <template v-if="isItineraryEditMode">
-                                    <input type="time" v-model="item.time" placeholder="時間 (e.g., 10:00)" class="text-sm text-gray-500 font-medium w-full p-1 border rounded-md mb-1">
-                                    <input type="text" v-model="item.name" placeholder="行程名稱" class="text-lg font-semibold w-full p-1 border rounded-md mb-1">
-                                    <input type="text" v-model="item.address" placeholder="地址 (用於導航)" class="text-xs text-gray-600 w-full p-1 border rounded-md mb-1">
-                                    <textarea v-model="item.notes" placeholder="備註 (例如：注意事項、預約資訊)" rows="2" class="text-xs text-gray-700 w-full p-1 border rounded-md resize-none"></textarea>
-                                </template>
-                                
-                                <template v-else>
-                                    <p class="text-sm text-gray-500 font-medium">{{ item.time }}</p>
-                                    <h4 class="text-lg font-semibold text-gray-800">{{ item.name }}</h4>
-                                    <p class="text-xs text-gray-600 truncate">{{ item.address }}</p>
-                                     <p v-if="item.notes" class="text-sm text-gray-700 mt-2 p-2 border-l-2 border-jp-accent-pink bg-jp-accent-pink/10 whitespace-pre-wrap">
-                                        <i class="fas fa-sticky-note mr-1"></i> {{ item.notes }}
-                                    </p>
-                                </template>
+                                <p class="text-sm text-gray-500 font-medium">{{ item.time || '未定' }}</p>
+                                <h4 class="text-lg font-semibold text-gray-800">{{ item.name }}</h4>
+                                <p class="text-xs text-gray-600 truncate">{{ item.address }}</p>
+                                <p v-if="item.notes" class="text-sm text-gray-700 mt-2 p-2 border-l-2 border-jp-accent-pink bg-jp-accent-pink/10 whitespace-pre-wrap">
+                                    <i class="fas fa-sticky-note mr-1"></i> {{ item.notes }}
+                                </p>
                             </div>
                             
-                            <button v-if="!isItineraryEditMode && item.address" @click="openMap(item.address)" 
+                            <button v-if="item.address" @click="openMap(item.address)" 
                                 class="text-jp-blue-dark hover:text-jp-blue-dark/80 ml-2 mt-1 p-1 flex-shrink-0">
                                 <i class="fas fa-location-arrow"></i>
-                            </button>
-                            
-                            <button v-if="isItineraryEditMode" @click="removeItineraryItem(itemIndex)" 
-                                    class="text-red-500 hover:text-red-700 ml-2 mt-1 p-1 flex-shrink-0">
-                                <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
                     </div>
@@ -339,8 +318,15 @@
 
         </div>
     </section>
+    
+    <button v-if="currentView === 'tripDetail' && selectedTrip.data.currentTab === 'itinerary'" 
+            @click="showAddItineraryModal = true"
+            class="fixed bottom-20 right-5 w-14 h-14 bg-jp-accent-pink text-white rounded-full shadow-lg hover:bg-jp-accent-pink/80 transition duration-300 z-30 flex items-center justify-center text-2xl">
+        <i class="fas fa-plus"></i>
+    </button>
 
-    <div v-if="showAddTripModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
+
+    <div v-if="showAddTripModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal">
         <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
             <h3 class="text-xl font-bold mb-4 border-b pb-2 text-jp-blue-dark">新增旅遊計畫</h3>
             <div class="mb-4"><label class="block text-sm font-medium text-gray-700">旅遊名稱</label><input type="text" v-model="newTripName" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-jp-blue-dark focus:border-jp-blue-dark"></div>
@@ -353,7 +339,7 @@
         </div>
     </div>
     
-    <div v-if="showEditTripModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
+    <div v-if="showEditTripModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal">
         <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
             <h3 class="text-xl font-bold mb-4 border-b pb-2 text-jp-blue-dark">編輯旅遊計畫</h3>
             
@@ -379,7 +365,7 @@
         </div>
     </div>
     
-    <div v-if="showAddHotelModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
+    <div v-if="showAddHotelModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal">
         <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
             <h3 class="text-xl font-bold mb-4 border-b pb-2 text-jp-blue-dark">新增住宿</h3>
             <div class="mb-4"><label class="block text-sm font-medium text-gray-700">飯店/住宿名稱</label><input type="text" v-model="newHotel.name" class="mt-1 block w-full border rounded-md p-2"></div>
@@ -392,7 +378,7 @@
         </div>
     </div>
     
-    <div v-if="showAddItineraryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
+    <div v-if="showAddItineraryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal">
         <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
             <h3 class="text-xl font-bold mb-4 border-b pb-2 text-jp-blue-dark">新增行程項目</h3>
             <p class="text-xs text-red-500 mb-4">目前正在為 {{ new Date(selectedTrip.data.dates[selectedTrip.data.selectedDateIndex]).toLocaleDateString() }} 新增行程。</p>
@@ -410,7 +396,32 @@
         </div>
     </div>
     
-    <div v-if="showShoppingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
+    <div v-if="showEditItineraryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
+            <h3 class="text-xl font-bold mb-4 border-b pb-2 text-jp-blue-dark">編輯行程項目</h3>
+            <p class="text-xs text-gray-500 mb-4">修改後行程將自動依照時間重新排序。</p>
+            
+            <template v-if="editingItineraryItem">
+                <div class="mb-4"><label class="block text-sm font-medium text-gray-700">時間 (手機可選時鐘)</label><input type="time" v-model="editingItineraryItem.time" class="mt-1 block w-full border rounded-md p-2"></div>
+                <div class="mb-4"><label class="block text-sm font-medium text-gray-700">行程名稱</label><input type="text" v-model="editingItineraryItem.name" class="mt-1 block w-full border rounded-md p-2"></div>
+                <div class="mb-4"><label class="block text-sm font-medium text-gray-700">地址 (用於導航)</label><input type="text" v-model="editingItineraryItem.address" class="mt-1 block w-full border rounded-md p-2"></div>
+                
+                <div class="mb-4"><label class="block text-sm font-medium text-gray-700">備註</label><textarea v-model="editingItineraryItem.notes" rows="3" placeholder="例如：注意事項、預約資訊..." class="mt-1 block w-full border rounded-md p-2 resize-none"></textarea></div>
+            </template>
+            
+            <div class="flex justify-between items-center mt-6">
+                <button @click="removeItineraryItem" class="px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50">
+                    <i class="fas fa-trash-alt mr-1"></i> 刪除此行程
+                </button>
+                <div class="flex space-x-3">
+                    <button @click="showEditItineraryModal = false" class="px-4 py-2 text-gray-600 border rounded-lg">取消</button>
+                    <button @click="saveEditedItineraryItem" class="px-4 py-2 bg-jp-blue-dark text-white rounded-lg">確認儲存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div v-if="showShoppingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal">
         <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
             <h3 class="text-xl font-bold mb-4 border-b pb-2 text-jp-blue-dark">新增購物項目</h3>
             <div class="mb-4"><label class="block text-sm font-medium text-gray-700">商品名稱</label><input type="text" v-model="newShoppingItem.name" class="mt-1 block w-full border rounded-md p-2"></div>
@@ -422,7 +433,7 @@
         </div>
     </div>
     
-    <div v-if="showExpenseModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
+    <div v-if="showExpenseModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal">
         <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
             <h3 class="text-xl font-bold mb-4 border-b pb-2 text-jp-blue-dark">紀錄花費</h3>
             <div class="mb-4"><label class="block text-sm font-medium text-gray-700">項目名稱/備註</label><input type="text" v-model="newExpense.name" class="mt-1 block w-full border rounded-md p-2"></div>
@@ -460,20 +471,16 @@
     const getCategoryLabel = (category) => CATEGORY_MAP[category]?.label || '未知';
     const formatNumber = (num) => (num || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
     
-    // 【修正】優化 Google Maps 連結，使用標準 Search URL，提高準確度
     const openMap = (address) => {
         if (!address) return alert('地址資料缺失，無法導航。');
-        // 使用標準的 Google Maps Search URL 格式，以利 Google 智慧解析地址和景點名稱
-        window.open(`https://www.google.com/maps/search/${encodeURIComponent(address)}`, '_blank');
+        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`, '_blank');
     };
 
-    // 生成一段時間範圍內的日期列表
     const generateDateRange = (start, end) => {
         const dates = [];
         let currentDate = new Date(start);
         const endDate = new Date(end);
         
-        // 確保日期被正確解析
         currentDate.setMinutes(currentDate.getMinutes() + currentDate.getTimezoneOffset());
         endDate.setMinutes(endDate.getMinutes() + endDate.getTimezoneOffset());
         
@@ -499,9 +506,12 @@
             const showAddHotelModal = ref(false); 
             const showAddItineraryModal = ref(false); 
             const showEditTripModal = ref(false); 
+            
+            // 【新增/修改】行程編輯專用狀態
+            const showEditItineraryModal = ref(false); // 獨立的編輯 Modal
+            const editingItineraryItem = ref(null); // 正在編輯的行程項目數據 (包含 originalIndex)
 
             const isHotelEditMode = ref(false); 
-            const isItineraryEditMode = ref(false); 
 
             // 表單數據
             const newTripName = ref('');
@@ -510,14 +520,13 @@
             const newShoppingItem = ref({ name: '', price: null });
             const newExpense = ref({ name: '', amount: null, category: 'food', date: new Date().toISOString().split('T')[0], paymentMethod: '現金' });
             const newHotel = ref({ name: '', date: '', address: '' });
-            // 【修正】新增 notes 欄位
             const newItinerary = ref({ time: '', name: '', address: '', notes: '' }); 
             const editingTripData = ref({ 
                 id: null, name: '', startDate: '', endDate: '', type: '',
             });
 
 
-            // 模擬的多個旅遊計畫數據 (已更新：行程加入備註)
+            // 模擬的多個旅遊計畫數據 (行程已加入備註)
             const trips = ref([
                 { 
                     id: 1, 
@@ -533,7 +542,9 @@
                         itineraryData: {
                             0: [
                                 { time: '09:00', name: '新千歲機場 (CTS)', address: '北海道千歳市美々', notes: '預計搭乘 JAL 123 班機，記得領取行李後，直接去購買 JR Pass。' }, 
-                                { time: '12:00', name: '海鮮午餐', address: '北海道札幌市中央区南４条西４丁目１', notes: '午餐預計在場外市場用餐，目標是帝王蟹！' }
+                                { time: '12:00', name: '海鮮午餐', address: '北海道札幌市中央区南４条西４丁目１', notes: '午餐預計在場外市場用餐，目標是帝王蟹！' },
+                                { time: '18:30', name: '札幌電視塔', address: '北海道札幌市中央区大通西１丁目', notes: '' },
+                                { time: '15:00', name: '大通公園', address: '北海道札幌市中央区大通西７丁目', notes: '確認是否有雪祭活動' }, // 故意亂序，測試排序功能
                             ],
                             1: [{ time: '10:30', name: '白色戀人公園', address: '北海道札幌市西区宮の沢２条２丁目１１−36', notes: '建議停留 2.5 小時，要買限定餅乾。' }], 
                         },
@@ -598,14 +609,28 @@
                 return [...upcomingTrips.value, ...completedTrips.value];
             });
             
-            const getCurrentItinerary = () => {
+            // 【修改】行程列表：計算屬性，用於排序和傳遞原始索引
+            const sortedCurrentItinerary = computed(() => {
                 if (!selectedTrip.value) return [];
                 const index = selectedTrip.value.data.selectedDateIndex;
+                
                 if (!selectedTrip.value.data.itineraryData[index]) {
                     selectedTrip.value.data.itineraryData[index] = [];
                 }
-                return selectedTrip.value.data.itineraryData[index];
-            };
+
+                const itinerary = selectedTrip.value.data.itineraryData[index];
+                
+                // 返回一個排序後的副本，並加入一個 'originalIndex' 屬性來追蹤它在原始陣列中的位置
+                return itinerary
+                    .map((item, originalIndex) => ({ ...item, originalIndex })) 
+                    .sort((a, b) => {
+                        // 排序邏輯：沒有時間的排在最前面/最後面（選擇放在最後）
+                        if (!a.time && !b.time) return 0;
+                        if (!a.time) return 1; 
+                        if (!b.time) return -1;
+                        return a.time.localeCompare(b.time); // 依照時間字串排序
+                    });
+            });
 
 
             // --- 方法 ---
@@ -614,7 +639,6 @@
                 selectedTrip.value = trip;
                 currentView.value = 'tripDetail';
                 isHotelEditMode.value = false; 
-                isItineraryEditMode.value = false; 
             };
 
             const goHome = () => {
@@ -672,7 +696,6 @@
                 showAddTripModal.value = false;
             };
             
-            // 開啟旅遊編輯 Modal
             const openEditTripModal = () => {
                 if (selectedTrip.value) {
                     editingTripData.value = {
@@ -686,7 +709,6 @@
                 }
             };
 
-            // 儲存旅遊編輯結果
             const saveEditedTrip = () => {
                 const data = editingTripData.value;
                 if (!data.name || !data.startDate || !data.endDate || !data.type) {
@@ -730,8 +752,40 @@
                 selectedTrip.value = decoratedTrips.value.find(t => t.id === data.id);
             };
 
+            // 【新增】開啟編輯行程項目 Modal
+            const openEditItineraryModal = (item) => {
+                // 複製項目數據，包含我們添加的 originalIndex
+                editingItineraryItem.value = { ...item }; 
+                showEditItineraryModal.value = true;
+            };
 
-            // 新增行程項目 (已更新：儲存備註)
+            // 【新增】儲存編輯後的行程項目
+            const saveEditedItineraryItem = () => {
+                const itemToSave = editingItineraryItem.value;
+                if (!itemToSave.name || !itemToSave.address) {
+                    alert('行程名稱和地址為必填項！');
+                    return;
+                }
+
+                const currentItineraryList = selectedTrip.value.data.itineraryData[selectedTrip.value.data.selectedDateIndex];
+                const originalIndex = itemToSave.originalIndex; // 取得原始索引
+
+                if (originalIndex !== undefined && currentItineraryList[originalIndex]) {
+                    // 更新原始項目數據
+                    currentItineraryList[originalIndex].time = itemToSave.time || '';
+                    currentItineraryList[originalIndex].name = itemToSave.name;
+                    currentItineraryList[originalIndex].address = itemToSave.address;
+                    currentItineraryList[originalIndex].notes = itemToSave.notes || '';
+                } else {
+                     alert('無法找到原始行程項目進行更新。');
+                }
+
+                // 重置並關閉
+                editingItineraryItem.value = null;
+                showEditItineraryModal.value = false;
+            };
+
+            // 【修改】新增行程項目 (不再設定 isItineraryEditMode)
             const addItineraryItem = () => {
                 if (!newItinerary.value.name || !newItinerary.value.address) {
                     alert('行程名稱和地址為必填項！');
@@ -742,23 +796,31 @@
                     time: newItinerary.value.time || '',
                     name: newItinerary.value.name,
                     address: newItinerary.value.address,
-                    notes: newItinerary.value.notes || '', // 【新增】儲存備註
+                    notes: newItinerary.value.notes || '', 
                 };
                 
-                getCurrentItinerary().push(newItem);
+                const currentItineraryList = selectedTrip.value.data.itineraryData[selectedTrip.value.data.selectedDateIndex];
+                currentItineraryList.push(newItem);
                 
-                // 【修正】重置備註
                 newItinerary.value = { time: '', name: '', address: '', notes: '' }; 
                 showAddItineraryModal.value = false;
-                isItineraryEditMode.value = true; 
             };
             
-            // 移除行程項目
-            const removeItineraryItem = (index) => {
+            // 【修改】移除行程項目 (從編輯 Modal 內部呼叫)
+            const removeItineraryItem = () => {
                 if (confirm('確定要刪除此行程嗎？')) {
-                    getCurrentItinerary().splice(index, 1);
+                    const originalIndex = editingItineraryItem.value.originalIndex;
+                    const currentItineraryList = selectedTrip.value.data.itineraryData[selectedTrip.value.data.selectedDateIndex];
+                    
+                    if (originalIndex !== undefined && currentItineraryList[originalIndex]) {
+                        currentItineraryList.splice(originalIndex, 1);
+                    }
+
+                    editingItineraryItem.value = null;
+                    showEditItineraryModal.value = false;
                 }
             };
+
 
             const addHotel = () => {
                 if (!newHotel.value.name || !newHotel.value.address) {
@@ -811,9 +873,9 @@
                 showExpenseModal,
                 showAddHotelModal,
                 showAddItineraryModal, 
-                showEditTripModal,
+                showEditTripModal, // 新增
+                editingItineraryItem, // 新增
                 isHotelEditMode, 
-                isItineraryEditMode, 
                 newTripName,
                 newTripStartDate,
                 newTripEndDate,
@@ -823,6 +885,7 @@
                 newItinerary, 
                 editingTripData,
                 tripTabs,
+                // 方法
                 goToTrip,
                 goHome,
                 confirmRemoveTrip, 
@@ -836,7 +899,10 @@
                 removeHotel, 
                 addItineraryItem, 
                 removeItineraryItem, 
-                getCurrentItinerary, 
+                openEditItineraryModal, // 新增
+                saveEditedItineraryItem, // 新增
+                // 計算屬性
+                sortedCurrentItinerary, // 新增
                 // 輔助函式
                 openMap,
                 formatNumber,
