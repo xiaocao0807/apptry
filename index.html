@@ -84,7 +84,7 @@
         }
 
         /* ================================================= */
-        /* 【新增】行程卡片底圖與漸層樣式 */
+        /* 【修正】行程卡片底圖與 50% 漸層樣式 */
         /* ================================================= */
         .itinerary-card {
             background-color: white; /* 預設背景色 */
@@ -101,9 +101,9 @@
             height: 100%;
             background-size: cover;
             background-position: center;
-            /* 使用 mask-image 實現水墨漸層效果 */
-            mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 95%, rgba(0,0,0,0) 100%);
-            -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 95%, rgba(0,0,0,0) 100%);
+            /* 使用 mask-image 實現水墨漸層效果：左側 50% 實色，之後漸層變白 */
+            mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 95%, rgba(0,0,0,0) 100%);
+            -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 95%, rgba(0,0,0,0) 100%);
             z-index: 1; /* 位於卡片內容之下 */
         }
         
@@ -615,7 +615,8 @@
     // Google Maps 連結
     const openMap = (address) => {
         if (!address) return alert('地址資料缺失，無法顯示地圖。');
-        window.open(`https://www.google.com/maps/search/?api=1&query=$${encodeURIComponent(address)}`, '_blank');
+        // 使用 Google Maps 搜尋連結
+        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`, '_blank');
     };
 
     const generateDateRange = (start, end) => {
@@ -661,10 +662,10 @@
             const newShoppingItem = ref({ name: '', price: null });
             const newExpense = ref({ name: '', amount: null, category: 'food', date: new Date().toISOString().split('T')[0], paymentMethod: '現金' });
             const newHotel = ref({ name: '', date: '', address: '' });
-            // 【修正】新增行程項目預設加入 category、imageURL、imageOpacity
+            // 【修正】預設背景圖空，透明度 20%
             const newItinerary = ref({ 
                 time: '', name: '', address: '', notes: '', category: 'attraction', 
-                imageURL: '', imageOpacity: 50 // 預設透明度 50%
+                imageURL: '', imageOpacity: 20 // 預設透明度 20%
             }); 
             const editingTripData = ref({ 
                 id: null, name: '', startDate: '', endDate: '', type: '',
@@ -686,7 +687,7 @@
                         selectedDateIndex: 0,
                         itineraryData: {
                             0: [
-                                // 【新增圖片測試資料】
+                                // 測試資料：圖片、透明度
                                 { time: '09:00', name: '新千歲機場 (CTS)', address: '北海道千歳市美々', notes: '預計搭乘 JAL 123 班機，記得領取行李後，直接去購買 JR Pass。', category: 'flight', imageURL: 'https://images.unsplash.com/photo-1542456073-61a7c4f48866?q=80&w=200&h=100&auto=format&fit=crop', imageOpacity: 40 }, 
                                 { time: '12:00', name: '海鮮午餐', address: '北海道札幌市中央区南４条西４丁目１', notes: '午餐預計在場外市場用餐，目標是帝王蟹！', category: 'food', imageURL: 'https://images.unsplash.com/photo-1596707328639-652a6a6f1943?q=80&w=200&h=100&auto=format&fit=crop', imageOpacity: 60 },
                                 { time: '18:30', name: '札幌電視塔', address: '北海道札幌市中央区大通西１丁目', notes: '', category: 'attraction', imageURL: '', imageOpacity: 50 },
@@ -756,7 +757,7 @@
                 return [...upcomingTrips.value, ...completedTrips.value];
             });
             
-            // 行程列表：計算屬性，用於排序和傳遞原始索引
+            // 行程列表：計算屬性，用於排序和傳遞原始索引 (修正透明度預設值)
             const sortedCurrentItinerary = computed(() => {
                 if (!selectedTrip.value) return [];
                 const index = selectedTrip.value.data.selectedDateIndex;
@@ -774,7 +775,8 @@
                         originalIndex,
                         // 確保圖片屬性有預設值
                         imageURL: item.imageURL || '', 
-                        imageOpacity: item.imageOpacity !== undefined ? item.imageOpacity : 50 
+                        // 【修正】若既有項目未設定透明度，預設值為 20
+                        imageOpacity: item.imageOpacity !== undefined ? item.imageOpacity : 20 
                     })) 
                     .sort((a, b) => {
                         // 排序邏輯：沒有時間的排在最後面
@@ -912,7 +914,8 @@
                     ...item,
                     category: item.category || 'attraction', 
                     imageURL: item.imageURL || '',
-                    imageOpacity: item.imageOpacity !== undefined ? item.imageOpacity : 50 
+                    // 【修正】若既有項目未設定透明度，預設值為 20
+                    imageOpacity: item.imageOpacity !== undefined ? item.imageOpacity : 20 
                 }; 
                 showEditItineraryModal.value = true;
             };
@@ -946,7 +949,7 @@
                 showEditItineraryModal.value = false;
             };
 
-            // 新增行程項目
+            // 新增行程項目 (修正透明度預設值)
             const addItineraryItem = () => {
                 if (!newItinerary.value.name || !newItinerary.value.address) {
                     alert('行程名稱和地址為必填項！');
@@ -960,16 +963,16 @@
                     notes: newItinerary.value.notes || '', 
                     category: newItinerary.value.category, 
                     imageURL: newItinerary.value.imageURL || '',
-                    imageOpacity: newItinerary.value.imageOpacity || 50,
+                    imageOpacity: newItinerary.value.imageOpacity || 20, // 確保使用 20%
                 };
                 
                 const currentItineraryList = selectedTrip.value.data.itineraryData[selectedTrip.value.data.selectedDateIndex];
                 currentItineraryList.push(newItem);
                 
-                // 重置表單
+                // 重置表單 (確保重置後也是 20%)
                 newItinerary.value = { 
                     time: '', name: '', address: '', notes: '', category: 'attraction', 
-                    imageURL: '', imageOpacity: 50 
+                    imageURL: '', imageOpacity: 20 
                 };
                 showAddItineraryModal.value = false;
             };
