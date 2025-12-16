@@ -16,12 +16,14 @@
             theme: {
                 extend: {
                     colors: {
-                        'jp-blue-light': '#B3E5FC',      // 清新藍 (主色基底)
-                        'jp-blue-dark': '#0288D1',       // 深海藍 (文字/強調)
-                        'jp-white': '#FAFAFA',           // 柔和白 (背景)
-                        'jp-accent-green': '#A5D6A7',    // 活潑綠 (完成標籤)
-                        'jp-accent-pink': '#FFCCBC',     // 櫻花粉 (進行中標籤, 浮動按鈕)
-                        'jp-accent-yellow': '#FFECB3'    // 待定黃 (未開始標籤)
+                        // === 核心變動: 降低飽和度 ===
+                        'jp-blue-light': '#E0F7FA',      // 極淺灰藍色 (飽和度低，更柔和)
+                        'jp-blue-dark': '#0288D1',       // 深海藍 (文字/強調 - 保持不變)
+                        'jp-white': '#F5F5F5',           // 柔和淺灰色 (背景 - 降低純白感)
+                        // ===========================
+                        'jp-accent-green': '#A5D6A7',    // 活潑綠 
+                        'jp-accent-pink': '#FFCCBC',     // 櫻花粉
+                        'jp-accent-yellow': '#FFECB3'    // 待定黃
                     }
                 }
             }
@@ -33,7 +35,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: theme('colors.jp-white');
+            background-color: theme('colors.jp-white'); /* 使用新的淺灰背景色 */
             margin: 0;
             padding: 0;
         }
@@ -44,7 +46,7 @@
             margin: 0 auto;
             min-height: 100vh;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); /* 增加 App 質感陰影 */
-            background-color: white;
+            background-color: white; /* 內部主要區塊保持白色 */
             padding-bottom: 80px; /* 底部空間：確保內容不會被底部導航列遮擋 */
         }
         
