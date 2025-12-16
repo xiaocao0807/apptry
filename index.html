@@ -16,10 +16,10 @@
             theme: {
                 extend: {
                     colors: {
-                        // === 核心變動: 頂部標題使用的低飽和藍綠色系 ===
+                        // === 基準配色 (標題使用日系藍色) ===
                         'jp-white': '#F5F5F5',           // 淺灰色 (整體背景)
-                        'jp-blue-light': '#C8EBF1',      // 較淺的藍綠色 (資訊區塊)
-                        'jp-blue-dark': '#00796B',       // **深青色 (標題/強調色)**
+                        'jp-blue-light': '#E0F7FA',      // 較淺的藍色 (資訊區塊)
+                        'jp-blue-dark': '#03A9F4',       // **日系藍色 (標題/強調色)**
                         // ===========================
                         'jp-accent-green': '#A5D6A7',    // 活潑綠 
                         'jp-accent-pink': '#FFCCBC',     // 櫻花粉
@@ -35,7 +35,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            /* 使用淺灰色背景色 */
+            /* **關鍵修正：使用淺灰色背景色** */
             background-color: theme('colors.jp-white'); 
             margin: 0;
             padding: 0;
@@ -57,7 +57,7 @@
             position: sticky;
             top: 0;
             z-index: 10;
-            /* 標題欄背景色使用低飽和藍綠色 (jp-blue-dark) */
+            /* 標題欄背景色使用日系藍色 (jp-blue-dark) */
             background-color: theme('colors.jp-blue-dark'); 
         }
 
@@ -290,16 +290,7 @@
 
     <main v-if="currentView === 'home'" class="p-4">
         
-        <div class="flex justify-between items-center mb-4 p-2 bg-white rounded-xl shadow-md border">
-            
-            <div class="flex items-center">
-                <label for="typeFilter" class="text-sm text-gray-600 mr-2 font-medium">篩選分類:</label>
-                <select id="typeFilter" v-model="filterType"
-                        class="p-1 border border-gray-300 rounded-lg text-sm bg-white focus:ring-jp-blue-dark focus:border-jp-blue-dark">
-                    <option value="所有分類">所有分類</option>
-                    <option v-for="type in tripTypes" :key="type" :value="type">{{ type }}</option>
-                </select>
-            </div>
+        <div class="flex justify-end items-center mb-4 p-2 bg-white rounded-xl shadow-md border">
             
             <div class="flex items-center">
                 <label for="showCompletedToggle" class="text-sm text-gray-600 mr-2">顯示已完成</label>
@@ -308,12 +299,12 @@
             </div>
         </div>
 
-        <h2 v-if="filteredTrips.upcoming.length > 0" class="text-lg font-semibold text-jp-blue-dark mb-3 border-l-4 border-jp-blue-dark pl-2">
-            進行中與即將開始 ({{ filteredTrips.upcoming.length }})
+        <h2 v-if="upcomingTrips.length > 0" class="text-lg font-semibold text-jp-blue-dark mb-3 border-l-4 border-jp-blue-dark pl-2">
+            進行中與即將開始 ({{ upcomingTrips.length }})
         </h2>
         
         <div class="space-y-4 mb-8">
-            <div v-for="trip in filteredTrips.upcoming" :key="trip.id" 
+            <div v-for="trip in upcomingTrips" :key="trip.id" 
                  class="trip-card p-4 rounded-xl shadow-md bg-white border-t-4 border-jp-accent-pink flex justify-between items-center">
                 <div @click.stop="goToTrip(trip)" class="trip-card-content cursor-pointer">
                     <p class="text-xs font-semibold uppercase text-jp-blue-dark mb-1">{{ trip.type }}</p>
@@ -332,12 +323,12 @@
             </div>
         </div>
 
-        <template v-if="showCompleted && filteredTrips.completed.length > 0">
+        <template v-if="showCompleted && completedTrips.length > 0">
             <h2 class="text-lg font-semibold text-gray-600 mb-3 border-l-4 border-gray-400 pl-2">
-                已完成計畫 ({{ filteredTrips.completed.length }})
+                已完成計畫 ({{ completedTrips.length }})
             </h2>
             <div class="space-y-4">
-                 <div v-for="trip in filteredTrips.completed" :key="trip.id" 
+                 <div v-for="trip in completedTrips" :key="trip.id" 
                       class="trip-card p-4 rounded-xl shadow-md bg-white border-t-4 border-gray-300 opacity-70 flex justify-between items-center">
                     <div @click.stop="goToTrip(trip)" class="trip-card-content cursor-pointer">
                         <p class="text-xs font-semibold uppercase text-gray-500 mb-1">{{ trip.type }}</p>
@@ -357,8 +348,8 @@
             </div>
         </template>
         
-        <p v-if="!filteredTrips.upcoming.length && !filteredTrips.completed.length" class="text-center text-gray-500 mt-10 p-4 border-2 border-dashed rounded-xl">
-            目前沒有符合篩選條件的旅遊計畫。
+        <p v-if="!upcomingTrips.length && !completedTrips.length" class="text-center text-gray-500 mt-10 p-4 border-2 border-dashed rounded-xl">
+            目前沒有旅遊計畫。
         </p>
 
     </main>
@@ -806,7 +797,7 @@
 
     const getItineraryColor = (category) => {
         const colors = {
-            attraction: '#0288D1', // 跟標題顏色不同，維持藍色
+            attraction: '#0288D1', // 藍色
             food: '#D32F2F',       // 紅色
             traffic: '#388E3C',    // 綠色
             hotel: '#FBC02D',       // 黃色
@@ -874,11 +865,8 @@
             // ======================================
             const currentView = ref('home'); // 'home' | 'tripDetail'
             
-            // 核心修改 1: 更新旅遊分類
-            const tripTypes = ['未分類', '國外旅遊', '國內旅遊', '露營'];
-            
-            // 核心修改 2: 新增分類篩選狀態
-            const filterType = ref('所有分類'); // 預設顯示所有分類
+            // 基準版分類 (還原為簡化版本，只用於資料結構，不用於篩選)
+            const tripTypes = ['國外旅遊', '國內旅遊', '商務旅行', '其他'];
             
             const showCompleted = ref(false);
 
@@ -900,13 +888,13 @@
             const newTripName = ref('');
             const newTripStartDate = ref('');
             const newTripEndDate = ref('');
-            const newTripType = ref(tripTypes[0]); // 預設第一個分類 (未分類)
+            const newTripType = ref(tripTypes[0]); 
             
             const editingTripData = ref({});
             
             const newItineraryItem = ref({ 
                 name: '', time: '', category: 'attraction', address: '', notes: '', 
-                imageURL: '', imageOpacity: 50 // 預設 50% 不透明度
+                imageURL: '', imageOpacity: 50 
             });
             const editingItineraryItem = ref({});
             
@@ -932,7 +920,7 @@
                     startDate: '2025-11-15',
                     endDate: '2025-11-22',
                     status: '即將開始',
-                    type: '國外旅遊', // 使用新分類
+                    type: '國外旅遊', 
                     data: {
                         currentTab: 'itinerary',
                         dates: getDatesBetween('2025-11-15', '2025-11-22'),
@@ -960,44 +948,50 @@
                             { name: '京都麗思卡爾頓', date: '11/15-11/17', address: '京都市中京區' },
                             { name: '大阪希爾頓', date: '11/17-11/22', address: '大阪市北區梅田' },
                         ],
-                        currencyInput: 5000, // 匯率換算預設值
+                        currencyInput: 5000, 
+                        totalExpensesJPY: 181500,
+                        totalExpensesTWD: 39022.5,
                     }
                 },
                 {
                     id: 2,
-                    name: '宜蘭三天兩夜露營',
+                    name: '台北業務出差',
                     startDate: '2024-05-18',
                     endDate: '2024-05-20',
                     status: '進行中',
-                    type: '露營', // 使用新分類
+                    type: '商務旅行', 
                     data: {
                         currentTab: 'itinerary',
                         dates: getDatesBetween('2024-05-18', '2024-05-20'),
                         selectedDateIndex: 0,
                         itinerary: [
-                            { date: '2024-05-18', time: '14:00', name: '抵達南澳秘境營地', category: 'attraction', address: '宜蘭縣南澳鄉', notes: '先搭帳棚，確認水源跟電箱', imageURL: '', imageOpacity: 50 },
-                            { date: '2024-05-18', time: '18:30', name: 'BBQ 晚餐', category: 'food', address: '營地', notes: '烤肉串、玉米、海鮮', imageURL: '', imageOpacity: 50 },
-                            { date: '2024-05-19', time: '10:00', name: '東岳湧泉', category: 'attraction', address: '宜蘭縣南澳鄉', notes: '水很冰，帶泳衣', imageURL: '', imageOpacity: 50 },
+                            { date: '2024-05-18', time: '14:00', name: '客戶 A 會議', category: 'other', address: '台北 101 大樓', notes: '攜帶合約文件，準備簡報', imageURL: '', imageOpacity: 50 },
+                            { date: '2024-05-18', time: '18:30', name: '君悅酒店', category: 'hotel', address: '信義區', notes: '報銷住宿費', imageURL: '', imageOpacity: 50 },
+                            { date: '2024-05-19', time: '10:00', name: '前往客戶 B 公司', category: 'traffic', address: '內湖區科技園區', notes: '搭乘計程車', imageURL: '', imageOpacity: 50 },
                         ],
                         shoppingList: [
-                            { name: '露營瓦斯罐', price: 300, isBought: true },
-                            { name: '蚊香', price: 80, isBought: true },
-                            { name: '啤酒', price: 400, isBought: false },
+                            { name: '領帶', price: 1500, isBought: true },
+                            { name: '咖啡豆', price: 400, isBought: false },
                         ],
-                        expenses: [],
+                        expenses: [
+                             { name: '高鐵票', amount: 1400, date: '2024-05-18', category: 'traffic', paymentMethod: 'easycard' },
+                             { name: '午餐便當', amount: 150, date: '2024-05-19', category: 'food', paymentMethod: 'cash' },
+                        ],
                         hotels: [
-                            { name: '南澳秘境營地', date: '5/18-5/20', address: '宜蘭縣南澳鄉' },
+                            { name: '台北君悅酒店', date: '5/18-5/20', address: '台北市信義區' },
                         ],
                         currencyInput: 1000,
+                        totalExpensesJPY: 1550, // 僅為範例，實際幣別為 TWD
+                        totalExpensesTWD: 333.25,
                     }
                 },
                 {
                     id: 3,
-                    name: '墾丁快閃',
+                    name: '高雄家庭旅遊',
                     startDate: '2023-08-10',
                     endDate: '2023-08-12',
                     status: '已完成',
-                    type: '國內旅遊', // 使用新分類
+                    type: '國內旅遊', 
                     data: {
                         currentTab: 'itinerary',
                         dates: getDatesBetween('2023-08-10', '2023-08-12'),
@@ -1007,6 +1001,8 @@
                         expenses: [{ name: '住宿費', amount: 8000, date: '2023-08-10', category: 'housing', paymentMethod: 'credit' }],
                         hotels: [],
                         currencyInput: 0,
+                        totalExpensesJPY: 8000,
+                        totalExpensesTWD: 1720,
                     }
                 }
             ]);
@@ -1015,37 +1011,17 @@
             // 計算屬性 (Computed Properties)
             // ======================================
             
-            // 核心修改 3: 篩選器邏輯 (根據類型和是否完成)
-            const filteredTrips = computed(() => {
-                const filtered = travelTrips.value.filter(trip => {
-                    if (filterType.value === '所有分類') {
-                        return true;
-                    }
-                    return trip.type === filterType.value;
-                });
-
-                const upcoming = filtered
-                    .filter(trip => trip.status !== '已完成')
-                    .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-                    
-                const completed = showCompleted.value 
-                    ? filtered.filter(trip => trip.status === '已完成')
-                    : [];
-
-                return { upcoming, completed };
-            });
-
-            // 已排序的旅遊計畫 
+            // 已排序的旅遊計畫 (基準版邏輯)
             const sortedTrips = computed(() => {
                 return travelTrips.value.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
             });
             
-            // 進行中的旅遊計畫
+            // 進行中的旅遊計畫 (基準版邏輯)
             const upcomingTrips = computed(() => {
                 return sortedTrips.value.filter(trip => trip.status !== '已完成');
             });
 
-            // 已完成的旅遊計畫
+            // 已完成的旅遊計畫 (基準版邏輯)
             const completedTrips = computed(() => {
                 return sortedTrips.value.filter(trip => trip.status === '已完成');
             });
@@ -1076,7 +1052,7 @@
                     // 假設匯率為 0.215
                     trip.data.totalExpensesTWD = totalJPY * 0.215; 
                 });
-            }, { deep: true });
+            }, { deep: true, immediate: true }); // immediate: true 確保初始化時計算一次
             
 
             // ======================================
@@ -1093,8 +1069,6 @@
             const goHome = () => {
                 currentView.value = 'home';
                 selectedTrip.value = null;
-                // 重置篩選器
-                filterType.value = '所有分類'; 
             };
             
             // 新增旅遊計畫
@@ -1114,7 +1088,7 @@
                     startDate: startDate,
                     endDate: endDate,
                     status: (new Date(endDate) < new Date()) ? '已完成' : '即將開始',
-                    type: newTripType.value, // 使用新分類
+                    type: newTripType.value,
                     data: {
                         currentTab: 'itinerary',
                         dates: dates,
@@ -1284,6 +1258,7 @@
 
             // 開啟 Google Map
             const openMap = (address) => {
+                // 修復 map URL 格式錯誤，確保能正確開啟地圖搜尋
                 const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
                 window.open(url, '_blank');
             };
@@ -1345,7 +1320,6 @@
             return {
                 currentView,
                 tripTypes,
-                filterType, // 篩選器狀態
                 showCompleted,
                 travelTrips,
                 selectedTrip,
@@ -1354,7 +1328,6 @@
                 upcomingTrips,
                 completedTrips,
                 sortedCurrentItinerary,
-                filteredTrips, // 新增的篩選結果
                 // Modals
                 showAddTripModal,
                 showEditTripModal,
