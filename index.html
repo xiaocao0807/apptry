@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅遊紀錄平台 V003.3 色彩優化版</title>
+    <title>旅遊紀錄平台 V003.4 色彩同步版</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -19,22 +19,22 @@
         h1, h2, h3, h4, h5, span, p, label, input, select, div { color: #1F2937; }
         .text-white, .text-white * { color: white !important; }
         
-        /* 天氣窗框 - 動態漸層 */
+        /* 天氣窗框基礎樣式 */
         .weather-banner {
-            margin: 16px; padding: 20px; border-radius: 1.5rem;
-            background: linear-gradient(135deg, var(--main-theme, #4C7B7B), #374151);
+            margin: 16px; padding: 22px; border-radius: 1.8rem;
             display: flex; justify-content: space-between; align-items: center;
-            min-height: 110px;
-            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.15);
+            min-height: 120px;
+            box-shadow: 0 12px 24px -8px rgba(0,0,0,0.2);
+            transition: background 0.5s ease; /* 增加顏色切換的平滑感 */
         }
 
-        /* 日期卡片 */
+        /* 日期卡片樣式 */
         .date-scroll-container { display: flex; overflow-x: auto; gap: 10px; padding: 10px 16px; }
         .date-card { 
             min-width: 62px; height: 80px; flex-shrink: 0; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             background: white; border-radius: 1rem; border: 1px solid #E5E7EB; 
-            transition: all 0.2s ease-out;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .date-card.active { border-color: transparent; transform: scale(1.05); box-shadow: 0 6px 12px rgba(0,0,0,0.1); z-index: 10; }
 
@@ -55,7 +55,7 @@
 <body>
 
 <div id="app" :style="{'--main-theme': currentThemeColor}">
-    <header class="sticky top-0 z-50 p-4 flex justify-between items-center shadow-sm" 
+    <header class="sticky top-0 z-50 p-4 flex justify-between items-center shadow-sm transition-colors duration-500" 
             :style="{ backgroundColor: currentView === 'home' ? '#4C7B7B' : currentThemeColor }">
         <h1 class="text-xl font-black flex items-center text-white">
             <button v-if="currentView !== 'home'" @click="goHome" class="mr-3"><i class="fas fa-arrow-left"></i></button>
@@ -90,7 +90,7 @@
     </main>
 
     <section v-if="currentView === 'tripDetail' && selectedTrip">
-        <div class="weather-banner">
+        <div class="weather-banner" :style="{ background: `linear-gradient(135deg, ${currentThemeColor}, #2D3748)` }">
             <div class="flex flex-col">
                 <span class="text-white/70 text-[10px] font-black uppercase tracking-widest">Live Weather</span>
                 <h2 class="text-white text-xl font-black mt-0.5">{{ selectedTrip.name }}</h2>
@@ -123,7 +123,7 @@
                 <div v-for="(item, idx) in currentDayItinerary" :key="idx" class="p-4 bg-white rounded-2xl shadow-sm border-l-4" :style="{ borderLeftColor: getAdaptiveColor(item.category) }">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center">
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3 text-white shadow-sm" :style="{ backgroundColor: getAdaptiveColor(item.category) }"><i :class="getItineraryIcon(item.category)"></i></div>
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3 text-white shadow-sm transition-colors" :style="{ backgroundColor: getAdaptiveColor(item.category) }"><i :class="getItineraryIcon(item.category)"></i></div>
                             <div><p class="text-[10px] font-bold text-gray-400">{{ item.time }}</p><h4 class="font-bold">{{ item.name }}</h4></div>
                         </div>
                         <div class="flex space-x-1">
@@ -213,16 +213,11 @@
             <h3 class="font-black text-xl mb-6">行程細節</h3>
             <div class="space-y-5">
                 <div><label class="text-[10px] font-black text-gray-400 ml-1 uppercase">Spot Name</label><input v-model="(showAddItineraryModal ? newItinerary : editingItinerary).name" placeholder="景點名稱" class="w-full p-4 bg-gray-50 rounded-2xl border-0 font-bold"></div>
-                
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="text-[10px] font-black text-gray-400 ml-1 uppercase">Time</label><input type="time" v-model="(showAddItineraryModal ? newItinerary : editingItinerary).time" class="w-full p-4 bg-gray-50 rounded-2xl border-0 font-black text-sm"></div>
                     <div><label class="text-[10px] font-black text-gray-400 ml-1 uppercase">Type</label>
                         <select v-model="(showAddItineraryModal ? newItinerary : editingItinerary).category" class="clean-select w-full p-4 bg-gray-50 rounded-2xl border-0 text-xs font-bold">
-                            <option value="spot">景點</option>
-                            <option value="food">美食</option>
-                            <option value="transport">交通</option>
-                            <option value="flight">航班</option>
-                            <option value="shopping">購物</option>
+                            <option value="spot">景點</option><option value="food">美食</option><option value="transport">交通</option><option value="flight">航班</option><option value="shopping">購物</option>
                         </select>
                     </div>
                 </div>
@@ -260,14 +255,17 @@
             const trips = ref([]);
 
             onMounted(() => {
-                const data = localStorage.getItem('TRAVEL_V3.3');
+                const data = localStorage.getItem('TRAVEL_V3.4');
                 if (data) trips.value = JSON.parse(data);
             });
-            watch(trips, (v) => localStorage.setItem('TRAVEL_V3.3', JSON.stringify(v)), { deep: true });
+            watch(trips, (v) => localStorage.setItem('TRAVEL_V3.4', JSON.stringify(v)), { deep: true });
 
-            const currentThemeColor = computed(() => selectedTrip.value?.themeColor || '#4C7B7B');
+            const currentThemeColor = computed(() => {
+                // 如果在編輯模式，即時預覽顏色，否則顯示選中旅程的顏色
+                if(showEditTripModal.value) return activeTripData.value.themeColor;
+                return selectedTrip.value?.themeColor || '#4C7B7B';
+            });
             
-            // 天氣邏輯保持穩定
             const currentWeather = computed(() => {
                 const defaultW = { temp: '--', desc: 'Loading...', icon: 'fas fa-circle-notch fa-spin' };
                 if(!selectedTrip.value || !selectedTrip.value.data) return defaultW;
@@ -281,16 +279,15 @@
                 return weathers[seed % weathers.length];
             });
 
-            // 核心優化：動態適配衝突色計算
+            // 行程類別的動態衝突色（保持莫蘭迪質感）
             const getAdaptiveColor = (type) => {
                 const base = currentThemeColor.value;
-                // 模擬產生衝突但和諧的莫蘭迪色系
                 const map = {
-                    spot: base, // 景點用主色
-                    food: '#E2B1B1', // 柔粉衝突
-                    transport: '#8C9A9E', // 灰藍衝突
-                    flight: '#6B7A8F', // 深藍衝突
-                    shopping: '#D1B28C' // 薑黃衝突
+                    spot: base,
+                    food: '#E2B1B1',
+                    transport: '#8C9A9E',
+                    flight: '#6B7A8F',
+                    shopping: '#D1B28C'
                 };
                 return map[type] || base;
             };
