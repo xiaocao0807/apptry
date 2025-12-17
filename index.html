@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅遊紀錄平台 V003.2 穩定修正版</title>
+    <title>旅遊紀錄平台 V003.3 色彩優化版</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -16,38 +16,27 @@
         #app { max-width: 500px; margin: 0 auto; min-height: 100vh; box-shadow: 0 0 30px rgba(0,0,0,0.05); background-color: white; padding-bottom: 80px; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* 確保所有文字預設為深色，除非在天氣框內 */
         h1, h2, h3, h4, h5, span, p, label, input, select, div { color: #1F2937; }
         .text-white, .text-white * { color: white !important; }
         
-        /* 天氣窗框 - 強化顯示穩定性 */
+        /* 天氣窗框 - 動態漸層 */
         .weather-banner {
             margin: 16px; padding: 20px; border-radius: 1.5rem;
-            background: linear-gradient(135deg, var(--main-theme, #4C7B7B), #2D3748);
+            background: linear-gradient(135deg, var(--main-theme, #4C7B7B), #374151);
             display: flex; justify-content: space-between; align-items: center;
             min-height: 110px;
             box-shadow: 0 10px 20px -5px rgba(0,0,0,0.15);
         }
 
-        /* 日期卡片 - 修正溢出衝突 */
-        .date-scroll-container {
-            display: flex; overflow-x: auto; gap: 10px; padding: 10px 16px; 
-            scroll-behavior: smooth;
-        }
+        /* 日期卡片 */
+        .date-scroll-container { display: flex; overflow-x: auto; gap: 10px; padding: 10px 16px; }
         .date-card { 
             min-width: 62px; height: 80px; flex-shrink: 0; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             background: white; border-radius: 1rem; border: 1px solid #E5E7EB; 
             transition: all 0.2s ease-out;
-            position: relative; top: 0;
         }
-        /* 修正：僅微調縮放，不使用位移避免撞牆 */
-        .date-card.active { 
-            border-color: transparent; 
-            transform: scale(1.05);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-            z-index: 10;
-        }
+        .date-card.active { border-color: transparent; transform: scale(1.05); box-shadow: 0 6px 12px rgba(0,0,0,0.1); z-index: 10; }
 
         .color-grid { display: grid; grid-template-rows: repeat(2, 42px); grid-auto-flow: column; gap: 12px; overflow-x: auto; padding: 10px 4px; }
         .color-dot { width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); cursor: pointer; }
@@ -131,10 +120,10 @@
 
         <div class="p-4 pb-24">
             <div v-if="selectedTrip.data.currentTab === 'itinerary'" class="space-y-4">
-                <div v-for="(item, idx) in currentDayItinerary" :key="idx" class="p-4 bg-white rounded-2xl shadow-sm border-l-4" :style="{ borderLeftColor: getItineraryColor(item.category) }">
+                <div v-for="(item, idx) in currentDayItinerary" :key="idx" class="p-4 bg-white rounded-2xl shadow-sm border-l-4" :style="{ borderLeftColor: getAdaptiveColor(item.category) }">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center">
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3 text-white shadow-sm" :style="{ backgroundColor: getItineraryColor(item.category) }"><i :class="getItineraryIcon(item.category)"></i></div>
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3 text-white shadow-sm" :style="{ backgroundColor: getAdaptiveColor(item.category) }"><i :class="getItineraryIcon(item.category)"></i></div>
                             <div><p class="text-[10px] font-bold text-gray-400">{{ item.time }}</p><h4 class="font-bold">{{ item.name }}</h4></div>
                         </div>
                         <div class="flex space-x-1">
@@ -199,7 +188,7 @@
     </nav>
 
     <div v-if="showAddTripModal || showEditTripModal" class="modal-overlay">
-        <div class="bg-white w-full max-sm rounded-[2.5rem] p-8 shadow-2xl">
+        <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl">
             <h3 class="font-black text-2xl mb-6">旅程設定</h3>
             <div class="space-y-4">
                 <div><label class="text-[10px] font-black text-gray-400 ml-1 uppercase">Trip Name</label><input v-model="activeTripData.name" placeholder="目的地或名稱" class="w-full p-4 bg-gray-50 rounded-2xl border-0 font-bold"></div>
@@ -222,10 +211,22 @@
     <div v-if="showAddItineraryModal || showEditItineraryModal" class="modal-overlay">
         <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl border-t-8" :style="{ borderColor: currentThemeColor }">
             <h3 class="font-black text-xl mb-6">行程細節</h3>
-            <div class="space-y-4">
-                <input v-model="(showAddItineraryModal ? newItinerary : editingItinerary).name" placeholder="景點名稱" class="w-full p-4 bg-gray-50 rounded-2xl border-0 font-bold">
-                <div class="grid grid-cols-2 gap-2"><input type="time" v-model="(showAddItineraryModal ? newItinerary : editingItinerary).time" class="p-4 bg-gray-50 rounded-2xl border-0 font-black"><select v-model="(showAddItineraryModal ? newItinerary : editingItinerary).category" class="clean-select p-4 bg-gray-50 rounded-2xl border-0 text-sm font-bold"><option value="spot">景點</option><option value="food">美食</option><option value="transport">交通</option></select></div>
-                <input v-model="(showAddItineraryModal ? newItinerary : editingItinerary).address" placeholder="地址 (地圖連動用)" class="w-full p-4 bg-gray-50 rounded-2xl border-0 text-xs">
+            <div class="space-y-5">
+                <div><label class="text-[10px] font-black text-gray-400 ml-1 uppercase">Spot Name</label><input v-model="(showAddItineraryModal ? newItinerary : editingItinerary).name" placeholder="景點名稱" class="w-full p-4 bg-gray-50 rounded-2xl border-0 font-bold"></div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-[10px] font-black text-gray-400 ml-1 uppercase">Time</label><input type="time" v-model="(showAddItineraryModal ? newItinerary : editingItinerary).time" class="w-full p-4 bg-gray-50 rounded-2xl border-0 font-black text-sm"></div>
+                    <div><label class="text-[10px] font-black text-gray-400 ml-1 uppercase">Type</label>
+                        <select v-model="(showAddItineraryModal ? newItinerary : editingItinerary).category" class="clean-select w-full p-4 bg-gray-50 rounded-2xl border-0 text-xs font-bold">
+                            <option value="spot">景點</option>
+                            <option value="food">美食</option>
+                            <option value="transport">交通</option>
+                            <option value="flight">航班</option>
+                            <option value="shopping">購物</option>
+                        </select>
+                    </div>
+                </div>
+                <div><label class="text-[10px] font-black text-gray-400 ml-1 uppercase">Address</label><input v-model="(showAddItineraryModal ? newItinerary : editingItinerary).address" placeholder="地址 (地圖連動用)" class="w-full p-4 bg-gray-50 rounded-2xl border-0 text-xs"></div>
             </div>
             <div class="flex space-x-3 mt-8"><button @click="showAddItineraryModal = false; showEditItineraryModal = false" class="flex-1 py-4 text-gray-400 font-bold">取消</button><button @click="showAddItineraryModal ? addItinerary() : saveItinerary()" class="flex-1 py-4 text-white rounded-2xl font-black" :style="{ backgroundColor: currentThemeColor }">確定</button></div>
         </div>
@@ -259,31 +260,42 @@
             const trips = ref([]);
 
             onMounted(() => {
-                const data = localStorage.getItem('TRAVEL_V3.2');
+                const data = localStorage.getItem('TRAVEL_V3.3');
                 if (data) trips.value = JSON.parse(data);
             });
-            watch(trips, (v) => localStorage.setItem('TRAVEL_V3.2', JSON.stringify(v)), { deep: true });
+            watch(trips, (v) => localStorage.setItem('TRAVEL_V3.3', JSON.stringify(v)), { deep: true });
 
             const currentThemeColor = computed(() => selectedTrip.value?.themeColor || '#4C7B7B');
             
-            // 修正天氣數據渲染 (增加保護與預設值)
+            // 天氣邏輯保持穩定
             const currentWeather = computed(() => {
                 const defaultW = { temp: '--', desc: 'Loading...', icon: 'fas fa-circle-notch fa-spin' };
                 if(!selectedTrip.value || !selectedTrip.value.data) return defaultW;
-                
-                const loc = selectedTrip.value.name || 'Travel';
-                const dateIdx = selectedTrip.value.data.selectedDateIndex || 0;
-                const seed = loc.length + dateIdx;
-                
+                const seed = (selectedTrip.value.name || '').length + (selectedTrip.value.data.selectedDateIndex || 0);
                 const weathers = [
                     { temp: 26, desc: 'Sunny / 晴朗', icon: 'fas fa-sun' },
                     { temp: 22, desc: 'Cloudy / 多雲', icon: 'fas fa-cloud' },
                     { temp: 19, desc: 'Showers / 陣雨', icon: 'fas fa-cloud-showers-heavy' },
-                    { temp: 24, desc: 'Partly Cloudy / 晴時多雲', icon: 'fas fa-cloud-sun' },
-                    { temp: 21, desc: 'Windy / 強風', icon: 'fas fa-wind' }
+                    { temp: 24, desc: 'Partly Cloudy / 晴時多雲', icon: 'fas fa-cloud-sun' }
                 ];
                 return weathers[seed % weathers.length];
             });
+
+            // 核心優化：動態適配衝突色計算
+            const getAdaptiveColor = (type) => {
+                const base = currentThemeColor.value;
+                // 模擬產生衝突但和諧的莫蘭迪色系
+                const map = {
+                    spot: base, // 景點用主色
+                    food: '#E2B1B1', // 柔粉衝突
+                    transport: '#8C9A9E', // 灰藍衝突
+                    flight: '#6B7A8F', // 深藍衝突
+                    shopping: '#D1B28C' // 薑黃衝突
+                };
+                return map[type] || base;
+            };
+
+            const getItineraryIcon = (c) => ({ spot: 'fas fa-map-pin', food: 'fas fa-utensils', transport: 'fas fa-car', flight: 'fas fa-plane', shopping: 'fas fa-shopping-bag' }[c] || 'fas fa-star');
 
             const sortedTrips = computed(() => {
                 const today = new Date().toISOString().split('T')[0];
@@ -347,15 +359,13 @@
             const goToTrip = (t) => { selectedTrip.value = t; currentView.value = 'tripDetail'; newHotel.value = { name: '', checkIn: t.startDate, checkOut: t.endDate }; };
             const goHome = () => currentView.value = 'home';
             const deleteTrip = (t) => { if(confirm(`確定刪除 ${t.name}?`)) trips.value = trips.value.filter(x => x.id !== t.id); };
-            const getItineraryColor = (c) => ({ spot: '#4C7B7B', food: '#E2B1B1', transport: '#8C9A9E' }[c] || '#4C7B7B');
-            const getItineraryIcon = (c) => ({ spot: 'fas fa-map-pin', food: 'fas fa-utensils', transport: 'fas fa-plane' }[c] || 'fas fa-star');
 
             return {
                 currentView, trips, filterCategory, showAddTripModal, showEditTripModal, showAddItineraryModal, showEditItineraryModal,
                 activeTripData, newHotel, newExpense, newShoppingItem, newItinerary, editingItinerary, morandiColors,
                 selectedTrip, currentThemeColor, sortedTrips, currentDayItinerary, totalExpenses, currentWeather,
                 tripTabs: [{id:'itinerary', label:'行程', icon:'fas fa-route'}, {id:'shopping', label:'清單', icon:'fas fa-tasks'}, {id:'expenses', label:'花費', icon:'fas fa-wallet'}, {id:'info', label:'住宿', icon:'fas fa-bed'}],
-                goToTrip, goHome, openAddTripModal, openEditTripModal, closeTripModal, saveTrip, deleteTrip, addItinerary, openEditItinerary, saveItinerary, addHotel, addExpense, addShoppingItem, openMap, getMonthAbbr, getDayOfWeek, getItineraryColor, getItineraryIcon, formatNumber
+                goToTrip, goHome, openAddTripModal, openEditTripModal, closeTripModal, saveTrip, deleteTrip, addItinerary, openEditItinerary, saveItinerary, addHotel, addExpense, addShoppingItem, openMap, getMonthAbbr, getDayOfWeek, getAdaptiveColor, getItineraryIcon, formatNumber
             };
         }
     }).mount('#app');
