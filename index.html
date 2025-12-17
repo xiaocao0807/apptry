@@ -33,6 +33,16 @@
 
         .modal-overlay { background-color: rgba(0,0,0,0.4); backdrop-filter: blur(8px); position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
         
+        /* 首頁旅程方框 - 已加入細邊框 */
+        .trip-card-home {
+            padding: 1.25rem; background-color: white; border-radius: 1rem;
+            border-left: 6px solid; /* 顏色由 inline style 決定 */
+            border-top: 1px solid #E5E7EB; border-right: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: transform 0.2s; cursor: pointer;
+        }
+        .trip-card-home:active { transform: scale(0.97); }
+
         /* 行程卡片佈局 - 已加入細邊框 */
         .itinerary-card {
             display: flex; align-items: center; 
@@ -84,7 +94,7 @@
                 {{ cat }}
             </button>
         </div>
-        <div v-for="trip in sortedTrips" :key="trip.id" @click="goToTrip(trip)" class="p-5 bg-white rounded-2xl border-l-[6px] shadow-sm active:scale-[0.97] transition" :style="{ borderLeftColor: trip.themeColor }">
+        <div v-for="trip in sortedTrips" :key="trip.id" @click="goToTrip(trip)" class="trip-card-home" :style="{ borderLeftColor: trip.themeColor }">
             <div class="flex justify-between items-start">
                 <div>
                     <span class="text-[10px] font-black px-2 py-0.5 rounded bg-gray-100" :style="{ color: trip.themeColor }">{{ trip.category }}</span>
@@ -260,7 +270,7 @@
             const addExpense = () => { if(newExpense.value.name && newExpense.value.amount) selectedTrip.value.data.expenses.push({ ...newExpense.value }); newExpense.value = { name: '', amount: null }; };
             const addHotel = () => { if(newHotel.value.name) selectedTrip.value.data.hotels.push({ ...newHotel.value }); newHotel.value = { name: '', checkIn: '', checkOut: '' }; };
             const addShoppingItem = () => { if(newShoppingItem.value) selectedTrip.value.data.shopping.push({ name: newShoppingItem.value, done: false }); newShoppingItem.value = ''; };
-            const openSmartMap = (item) => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address || item.name)}`, '_blank');
+            const openSmartMap = (item) => window.open(`http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(item.address || item.name)}`, '_blank');
             const getAdaptiveColor = (type) => ({ spot: currentThemeColor.value, food: '#E2B1B1', transport: '#8C9A9E', flight: '#6B7A8F', shopping: '#D1B28C' }[type] || currentThemeColor.value);
             const getItineraryIcon = (c) => ({ spot: 'fas fa-map-pin', food: 'fas fa-utensils', transport: 'fas fa-car', flight: 'fas fa-plane', shopping: 'fas fa-shopping-bag' }[c] || 'fas fa-star');
             const sortedTrips = computed(() => {
