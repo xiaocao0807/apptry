@@ -36,10 +36,11 @@
         /* 首頁旅程方框 - 已加入細邊框 */
         .trip-card-home {
             padding: 1.25rem; background-color: white; border-radius: 1rem;
-            border-left: 6px solid; /* 顏色由 inline style 決定 */
+            border-left: 6px solid;
             border-top: 1px solid #E5E7EB; border-right: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             transition: transform 0.2s; cursor: pointer;
+            margin-bottom: 1rem;
         }
         .trip-card-home:active { transform: scale(0.97); }
 
@@ -48,7 +49,7 @@
             display: flex; align-items: center; 
             padding: 1.2rem 1rem; background-color: white; border-radius: 1.5rem;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04); 
-            border-left: 4px solid; /* 顏色由 inline style 決定 */
+            border-left: 4px solid;
             border-top: 1px solid #E5E7EB; border-right: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB;
             margin-bottom: 0.75rem;
         }
@@ -99,6 +100,9 @@
                 <div>
                     <span class="text-[10px] font-black px-2 py-0.5 rounded bg-gray-100" :style="{ color: trip.themeColor }">{{ trip.category }}</span>
                     <h3 class="text-lg font-black mt-2">{{ trip.name }}</h3>
+                    <p v-if="trip.destination" class="text-xs font-bold text-gray-500 mt-1 flex items-center">
+                        <i class="fas fa-map-marker-alt mr-1.5 opacity-60"></i>{{ trip.destination }}
+                    </p>
                     <p class="text-[11px] text-gray-400 font-medium mt-1"><i class="far fa-calendar-alt mr-1"></i> {{ trip.startDate }} ~ {{ trip.endDate }}</p>
                 </div>
                 <button @click.stop="deleteTrip(trip)" class="text-gray-200 hover:text-red-400 p-2"><i class="fas fa-trash-alt"></i></button>
@@ -194,6 +198,8 @@
             <h3 class="font-black text-2xl mb-6">旅程設定</h3>
             <div class="space-y-4">
                 <div><label class="field-label">Trip Name / 旅程名稱</label><input v-model="activeTripData.name" placeholder="例如：東京五日遊" class="uniform-input"></div>
+                <div><label class="field-label">Destination / 目的地</label><input v-model="activeTripData.destination" placeholder="例如：日本東京、京都" class="uniform-input"></div>
+                
                 <div><label class="field-label">Category / 類別</label><select v-model="activeTripData.category" class="uniform-input"><option value="國內旅遊">國內旅遊</option><option value="國外旅遊">國外旅遊</option><option value="露營">露營</option></select></div>
                 <div><label class="field-label">Theme Color / 主題色</label>
                     <div class="color-grid hide-scrollbar"><div v-for="c in morandiColors" :key="c" @click="activeTripData.themeColor = c" class="color-dot" :class="{active: activeTripData.themeColor === c}" :style="{backgroundColor: c}"></div></div>
@@ -251,7 +257,20 @@
             });
             const goToTrip = (t) => { selectedTrip.value = t; currentView.value = 'tripDetail'; };
             const goHome = () => currentView.value = 'home';
-            const openAddTripModal = () => { activeTripData.value = { name: '', themeColor: '#4C7B7B', startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0], category: '國內旅遊' }; showAddTripModal.value = true; };
+            
+            // 初始化 activeTripData 增加 destination 欄位
+            const openAddTripModal = () => { 
+                activeTripData.value = { 
+                    name: '', 
+                    destination: '', // 新增欄位
+                    themeColor: '#4C7B7B', 
+                    startDate: new Date().toISOString().split('T')[0], 
+                    endDate: new Date().toISOString().split('T')[0], 
+                    category: '國內旅遊' 
+                }; 
+                showAddTripModal.value = true; 
+            };
+            
             const openEditTripModal = () => { activeTripData.value = { ...selectedTrip.value }; showEditTripModal.value = true; };
             const closeTripModal = () => { showAddTripModal.value = false; showEditTripModal.value = false; };
             const saveTrip = () => {
