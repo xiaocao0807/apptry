@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅程隨身記 V011.4 完整功能版</title>
+    <title>旅程隨身記 V011.5 天氣連動版</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -16,7 +16,7 @@
         #app { max-width: 500px; margin: 0 auto; min-height: 100vh; box-shadow: 0 0 30px rgba(0,0,0,0.05); background-color: white; padding-bottom: 80px; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* 基本 UI 元件 */
+        /* UI 元件 */
         .uniform-input, .uniform-textarea {
             width: 100%; background-color: #F3F4F6; border-radius: 1rem;
             border: 2px solid transparent; font-size: 14px; outline: none; transition: 0.2s;
@@ -25,7 +25,6 @@
         .uniform-textarea { min-height: 100px; padding: 1rem 1.25rem; resize: none; }
         .uniform-input:focus, .uniform-textarea:focus { border-color: var(--main-theme); background-color: white; }
 
-        /* 欄位說明標籤 */
         .field-label {
             font-size: 10px; font-weight: 900; color: #9CA3AF; 
             text-transform: uppercase; letter-spacing: 0.05em;
@@ -34,7 +33,7 @@
 
         .modal-overlay { background-color: rgba(0,0,0,0.4); backdrop-filter: blur(8px); position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
         
-        /* 行程卡片佈局 */
+        /* 行程卡片 */
         .itinerary-card {
             display: flex; align-items: center; 
             padding: 1.2rem 1rem; background-color: white; border-radius: 1.5rem;
@@ -44,7 +43,7 @@
         .itinerary-main-content { flex: 1; margin-left: 0.85rem; min-width: 0; }
         .action-buttons-vertical { display: flex; flex-direction: column; gap: 0.6rem; margin-left: 0.75rem; }
 
-        /* 備註區修正 */
+        /* 備註滑動 */
         .itinerary-note-v3 {
             margin-top: 0.5rem; height: 42px; overflow-y: auto; overflow-x: hidden;
             background-color: #F3F4F6; border-radius: 0.6rem; padding: 6px 10px;
@@ -53,7 +52,7 @@
         }
         .itinerary-note-v3::-webkit-scrollbar { display: none; }
 
-        /* Banner & Date */
+        /* Banner */
         .weather-banner { margin: 16px; padding: 22px; border-radius: 1.8rem; display: flex; justify-content: space-between; align-items: center; min-height: 120px; box-shadow: 0 12px 24px -8px rgba(0,0,0,0.15); }
         .date-scroll-container { display: flex; overflow-x: auto; gap: 10px; padding: 10px 16px; }
         .date-card { min-width: 62px; height: 80px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; border-radius: 1rem; border: 1px solid #E5E7EB; transition: 0.2s; }
@@ -70,7 +69,7 @@
     <header class="sticky top-0 z-50 p-4 flex justify-between items-center shadow-sm" :style="{ backgroundColor: currentView === 'home' ? '#4C7B7B' : currentThemeColor }">
         <h1 class="text-xl font-black flex items-center text-white">
             <button v-if="currentView !== 'home'" @click="goHome" class="mr-3"><i class="fas fa-arrow-left"></i></button>
-            <span class="truncate max-w-[220px]">{{ currentView === 'home' ? '旅程隨身記 V011.4' : selectedTrip.name }}</span>
+            <span class="truncate max-w-[220px]">{{ currentView === 'home' ? '旅程隨身記 V011.5' : selectedTrip.name }}</span>
         </h1>
         <div class="flex space-x-2">
             <button v-if="currentView === 'home'" @click="openAddTripModal" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white"><i class="fas fa-plus"></i></button>
@@ -90,7 +89,7 @@
                 <div>
                     <span class="text-[10px] font-black px-2 py-0.5 rounded bg-gray-100" :style="{ color: trip.themeColor }">{{ trip.category }}</span>
                     <h3 class="text-lg font-black mt-2">{{ trip.name }}</h3>
-                    <p class="text-[11px] text-gray-400 font-medium mt-1"><i class="far fa-calendar-alt mr-1"></i> {{ trip.startDate }} ~ {{ trip.endDate }}</p>
+                    <p class="text-[11px] text-gray-400 font-medium mt-1"><i class="fas fa-map-marker-alt mr-1"></i> {{ trip.destination || '未設定地點' }}</p>
                 </div>
                 <button @click.stop="deleteTrip(trip)" class="text-gray-200 hover:text-red-400 p-2"><i class="fas fa-trash-alt"></i></button>
             </div>
@@ -100,14 +99,17 @@
     <section v-if="currentView === 'tripDetail' && selectedTrip">
         <div class="weather-banner" :style="{ background: `linear-gradient(135deg, ${currentThemeColor}, ${getPerfectDarkColor(currentThemeColor)})` }">
             <div class="flex flex-col text-white">
-                <span class="text-white/70 text-[10px] font-black uppercase tracking-widest">Live Weather</span>
-                <h2 class="text-xl font-black mt-0.5">{{ selectedTrip.name }}</h2>
+                <span class="text-white/70 text-[10px] font-black uppercase tracking-widest">Local Weather</span>
+                <h2 class="text-xl font-black mt-0.5">{{ selectedTrip.destination || selectedTrip.name }}</h2>
                 <div class="flex items-center mt-2">
                     <span class="text-3xl font-black mr-2">{{ currentWeather.temp }}°</span>
                     <div class="text-[10px] font-bold border-l border-white/30 pl-2"><p>{{ currentWeather.desc }}</p><p class="opacity-60">RealFeel {{ currentWeather.temp - 1 }}°</p></div>
                 </div>
             </div>
-            <div class="text-right text-white"><i :class="currentWeather.icon" class="text-4xl mb-1"></i><p class="text-[9px] font-black opacity-70">{{ selectedTrip.data.dates[selectedTrip.data.selectedDateIndex] }}</p></div>
+            <div class="text-right text-white">
+                <i :class="currentWeather.icon" class="text-4xl mb-1"></i>
+                <p class="text-[9px] font-black opacity-70">{{ selectedTrip.data.dates[selectedTrip.data.selectedDateIndex] }}</p>
+            </div>
         </div>
 
         <div class="date-scroll-container hide-scrollbar">
@@ -130,12 +132,8 @@
                         <div v-if="item.note" class="itinerary-note-v3">{{ item.note }}</div>
                     </div>
                     <div class="action-buttons-vertical flex-shrink-0">
-                        <button @click="openEditItinerary(item)" class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 active:bg-gray-200">
-                            <i class="fas fa-pen text-[10px]"></i>
-                        </button>
-                        <button @click="openSmartMap(item)" class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 active:bg-gray-200">
-                            <i class="fas fa-location-arrow text-[10px]"></i>
-                        </button>
+                        <button @click="openEditItinerary(item)" class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 active:bg-gray-200"><i class="fas fa-pen text-[10px]"></i></button>
+                        <button @click="openSmartMap(item)" class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 active:bg-gray-200"><i class="fas fa-location-arrow text-[10px]"></i></button>
                     </div>
                 </div>
                 <button @click="showAddItineraryModal = true" class="w-full py-4 bg-white border-2 border-dashed rounded-2xl font-black mt-4" :style="{ color: currentThemeColor, borderColor: currentThemeColor + '40' }">+ 新增行程項目</button>
@@ -191,6 +189,7 @@
             <h3 class="font-black text-2xl mb-6">旅程設定</h3>
             <div class="space-y-4">
                 <div><label class="field-label">Trip Name / 旅程名稱</label><input v-model="activeTripData.name" placeholder="例如：東京五日遊" class="uniform-input"></div>
+                <div><label class="field-label">Destination / 目的地 (連動天氣)</label><input v-model="activeTripData.destination" placeholder="例如：日本東京" class="uniform-input"></div>
                 <div><label class="field-label">Category / 類別</label><select v-model="activeTripData.category" class="uniform-input"><option value="國內旅遊">國內旅遊</option><option value="國外旅遊">國外旅遊</option><option value="露營">露營</option></select></div>
                 <div><label class="field-label">Theme Color / 主題色</label>
                     <div class="color-grid hide-scrollbar"><div v-for="c in morandiColors" :key="c" @click="activeTripData.themeColor = c" class="color-dot" :class="{active: activeTripData.themeColor === c}" :style="{backgroundColor: c}"></div></div>
@@ -208,15 +207,15 @@
         <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl border-t-8 overflow-y-auto max-h-[90vh]" :style="{ borderColor: currentThemeColor }">
             <div class="flex justify-between items-start mb-6"><h3 class="font-black text-xl">行程細節</h3><button v-if="showEditItineraryModal" @click="deleteItinerary" class="text-red-400 p-1 text-sm font-bold"><i class="fas fa-trash-alt mr-1"></i>刪除</button></div>
             <div class="space-y-4">
-                <div><label class="field-label">Location / 景點名稱</label><input v-model="(showAddItineraryModal ? newItinerary : editingItinerary).name" placeholder="輸入名稱" class="uniform-input"></div>
+                <div><label class="field-label">Location / 景點名稱</label><input v-model="(showAddItineraryModal ? newItinerary : editingItinerary).name" placeholder="景點名稱" class="uniform-input"></div>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="field-label">Time / 時間</label><input type="time" v-model="(showAddItineraryModal ? newItinerary : editingItinerary).time" class="uniform-input"></div>
                     <div><label class="field-label">Type / 類型</label><select v-model="(showAddItineraryModal ? newItinerary : editingItinerary).category" class="uniform-input"><option value="spot">景點</option><option value="food">美食</option><option value="transport">交通</option><option value="flight">航班</option><option value="shopping">購物</option></select></div>
                 </div>
-                <div><label class="field-label">Address / 地址 (地圖定位用)</label><input v-model="(showAddItineraryModal ? newItinerary : editingItinerary).address" placeholder="輸入地址或關鍵字" class="uniform-input"></div>
-                <div><label class="field-label">Notes / 備註內容</label><textarea v-model="(showAddItineraryModal ? newItinerary : editingItinerary).note" placeholder="詳細筆記..." class="uniform-textarea"></textarea></div>
+                <div><label class="field-label">Address / 地址</label><input v-model="(showAddItineraryModal ? newItinerary : editingItinerary).address" placeholder="地址" class="uniform-input"></div>
+                <div><label class="field-label">Notes / 備註</label><textarea v-model="(showAddItineraryModal ? newItinerary : editingItinerary).note" placeholder="詳細內容..." class="uniform-textarea"></textarea></div>
             </div>
-            <div class="flex space-x-3 mt-8"><button @click="showAddItineraryModal = false; showEditItineraryModal = false" class="flex-1 py-4 text-gray-400 font-bold">取消</button><button @click="showAddItineraryModal ? addItinerary() : saveItinerary()" class="flex-1 py-4 text-white rounded-2xl font-black shadow-lg" :style="{ backgroundColor: currentThemeColor }">確定儲存</button></div>
+            <div class="flex space-x-3 mt-8"><button @click="showAddItineraryModal = false; showEditItineraryModal = false" class="flex-1 py-4 text-gray-400 font-bold">取消</button><button @click="showAddItineraryModal ? addItinerary() : saveItinerary()" class="flex-1 py-4 text-white rounded-2xl font-black shadow-lg" :style="{ backgroundColor: currentThemeColor }">確定</button></div>
         </div>
     </div>
 </div>
@@ -244,13 +243,25 @@
             const currentWeather = computed(() => {
                 if(!selectedTrip.value) return { temp: '--', desc: '...', icon: 'fas fa-sun' };
                 const dayIndex = selectedTrip.value.data.selectedDateIndex;
-                const weatherStates = [{ temp: 24, desc: 'Sunny / 晴朗', icon: 'fas fa-sun' }, { temp: 21, desc: 'Cloudy / 多雲', icon: 'fas fa-cloud' }, { temp: 19, desc: 'Rainy / 局部陣雨', icon: 'fas fa-cloud-showers-heavy' }, { temp: 23, desc: 'Windy / 強風', icon: 'fas fa-wind' }];
-                return weatherStates[(selectedTrip.value.id + dayIndex) % weatherStates.length];
+                const locationStr = selectedTrip.value.destination || "";
+                
+                // 模擬根據目的地名稱產生不同天氣
+                const weatherStates = [
+                    { temp: 24, desc: 'Sunny / 晴朗', icon: 'fas fa-sun' },
+                    { temp: 21, desc: 'Cloudy / 多雲', icon: 'fas fa-cloud' },
+                    { temp: 18, desc: 'Rainy / 局部陣雨', icon: 'fas fa-cloud-showers-heavy' },
+                    { temp: 23, desc: 'Windy / 強風', icon: 'fas fa-wind' },
+                    { temp: 15, desc: 'Mist / 薄霧', icon: 'fas fa-smog' }
+                ];
+                
+                // 使用目的地文字長度與日期做為隨機種子
+                const seed = (locationStr.length + dayIndex + selectedTrip.value.id) % weatherStates.length;
+                return weatherStates[seed];
             });
 
             const goToTrip = (t) => { selectedTrip.value = t; currentView.value = 'tripDetail'; };
             const goHome = () => currentView.value = 'home';
-            const openAddTripModal = () => { activeTripData.value = { name: '', themeColor: '#4C7B7B', startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0], category: '國內旅遊' }; showAddTripModal.value = true; };
+            const openAddTripModal = () => { activeTripData.value = { name: '', destination: '', themeColor: '#4C7B7B', startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0], category: '國內旅遊' }; showAddTripModal.value = true; };
             const openEditTripModal = () => { activeTripData.value = { ...selectedTrip.value }; showEditTripModal.value = true; };
             const closeTripModal = () => { showAddTripModal.value = false; showEditTripModal.value = false; };
             
@@ -262,35 +273,23 @@
                 closeTripModal();
             };
 
-            const deleteTrip = (t) => { if(confirm(`確定刪除 ${t.name}?`)) trips.value = trips.value.filter(x => x.id !== t.id); };
             const addItinerary = () => { selectedTrip.value.data.itinerary.push({ ...newItinerary.value, id: Date.now(), date: selectedTrip.value.data.dates[selectedTrip.value.data.selectedDateIndex] }); showAddItineraryModal.value = false; newItinerary.value = { name: '', time: '09:00', category: 'spot', address:'', note: '' }; };
-            const openEditItinerary = (i) => { editingItinerary.value = { ...i }; showEditItineraryModal.value = true; };
             const saveItinerary = () => { const idx = selectedTrip.value.data.itinerary.findIndex(x => x.id === editingItinerary.value.id); selectedTrip.value.data.itinerary[idx] = { ...editingItinerary.value }; showEditItineraryModal.value = false; };
-            const deleteItinerary = () => { if(confirm('確定刪除此行程？')) { selectedTrip.value.data.itinerary = selectedTrip.value.data.itinerary.filter(x => x.id !== editingItinerary.value.id); showEditItineraryModal.value = false; }};
-
-            const addExpense = () => { if(newExpense.value.name && newExpense.value.amount) selectedTrip.value.data.expenses.push({ ...newExpense.value }); newExpense.value = { name: '', amount: null }; };
-            const addHotel = () => { if(newHotel.value.name) selectedTrip.value.data.hotels.push({ ...newHotel.value }); newHotel.value = { name: '', checkIn: '', checkOut: '' }; };
-            const addShoppingItem = () => { if(newShoppingItem.value) selectedTrip.value.data.shopping.push({ name: newShoppingItem.value, done: false }); newShoppingItem.value = ''; };
-
-            const openSmartMap = (item) => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address || item.name)}`, '_blank');
-            const getAdaptiveColor = (type) => ({ spot: currentThemeColor.value, food: '#E2B1B1', transport: '#8C9A9E', flight: '#6B7A8F', shopping: '#D1B28C' }[type] || currentThemeColor.value);
-            const getItineraryIcon = (c) => ({ spot: 'fas fa-map-pin', food: 'fas fa-utensils', transport: 'fas fa-car', flight: 'fas fa-plane', shopping: 'fas fa-shopping-bag' }[c] || 'fas fa-star');
-            
-            const sortedTrips = computed(() => {
-                let filtered = [...trips.value];
-                if (filterCategory.value !== '全部') filtered = filtered.filter(t => t.category === filterCategory.value);
-                return filtered.sort((a,b) => b.id - a.id);
-            });
-
-            const currentDayItinerary = computed(() => selectedTrip.value ? selectedTrip.value.data.itinerary.filter(i => i.date === selectedTrip.value.data.dates[selectedTrip.value.data.selectedDateIndex]).sort((a,b) => a.time.localeCompare(b.time)) : []);
-            const totalExpenses = computed(() => selectedTrip.value?.data.expenses.reduce((s,i) => s + (Number(i.amount) || 0), 0) || 0);
             
             return {
                 currentView, trips, filterCategory, showAddTripModal, showEditTripModal, showAddItineraryModal, showEditItineraryModal,
-                selectedTrip, currentThemeColor, sortedTrips, currentDayItinerary, activeTripData, morandiColors,
-                newShoppingItem, newItinerary, editingItinerary, newExpense, newHotel, totalExpenses, currentWeather,
+                selectedTrip, currentThemeColor, sortedTrips, currentDayItinerary: computed(() => selectedTrip.value ? selectedTrip.value.data.itinerary.filter(i => i.date === selectedTrip.value.data.dates[selectedTrip.value.data.selectedDateIndex]).sort((a,b) => a.time.localeCompare(b.time)) : []), 
+                activeTripData, morandiColors, newShoppingItem, newItinerary, editingItinerary, newExpense, newHotel, 
+                totalExpenses: computed(() => selectedTrip.value?.data.expenses.reduce((s,i) => s + (Number(i.amount) || 0), 0) || 0),
+                currentWeather,
                 tripTabs: [{id:'itinerary', label:'行程', icon:'fas fa-route'}, {id:'shopping', label:'清單', icon:'fas fa-tasks'}, {id:'expenses', label:'花費', icon:'fas fa-wallet'}, {id:'info', label:'住宿', icon:'fas fa-bed'}],
-                goToTrip, goHome, openAddTripModal, openEditTripModal, closeTripModal, saveTrip, deleteTrip, addItinerary, openEditItinerary, saveItinerary, deleteItinerary, addShoppingItem, addExpense, addHotel, openSmartMap, getMonthAbbr: (d) => ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][new Date(d).getMonth()], getDayOfWeek: (d) => ['SUN','MON','TUE','WED','THU','FRI','SAT'][new Date(d).getDay()], getAdaptiveColor, getItineraryIcon, getPerfectDarkColor, formatNumber: (n) => new Intl.NumberFormat().format(n)
+                goToTrip, goHome, openAddTripModal, openEditTripModal, closeTripModal, saveTrip, deleteTrip: (t) => { if(confirm(`確定刪除 ${t.name}?`)) trips.value = trips.value.filter(x => x.id !== t.id); },
+                addItinerary, openEditItinerary: (i) => { editingItinerary.value = { ...i }; showEditItineraryModal.value = true; },
+                saveItinerary, deleteItinerary: () => { if(confirm('確定刪除此行程？')) { selectedTrip.value.data.itinerary = selectedTrip.value.data.itinerary.filter(x => x.id !== editingItinerary.value.id); showEditItineraryModal.value = false; }},
+                addShoppingItem: () => { if(newShoppingItem.value) selectedTrip.value.data.shopping.push({ name: newShoppingItem.value, done: false }); newShoppingItem.value = ''; },
+                addExpense: () => { if(newExpense.value.name && newExpense.value.amount) selectedTrip.value.data.expenses.push({ ...newExpense.value }); newExpense.value = { name: '', amount: null }; },
+                addHotel: () => { if(newHotel.value.name) selectedTrip.value.data.hotels.push({ ...newHotel.value }); newHotel.value = { name: '', checkIn: '', checkOut: '' }; },
+                openSmartMap, getMonthAbbr: (d) => ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][new Date(d).getMonth()], getDayOfWeek: (d) => ['SUN','MON','TUE','WED','THU','FRI','SAT'][new Date(d).getDay()], getAdaptiveColor, getItineraryIcon, getPerfectDarkColor, formatNumber: (n) => new Intl.NumberFormat().format(n)
             };
         }
     }).mount('#app');
