@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅遊紀錄平台 V002.9 窗框版</title>
+    <title>旅遊紀錄平台 V003.0 穩定修正版</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -19,12 +19,10 @@
         h1, h2, h3, h4, h5, span, p, label, input, select, textarea, div { color: #1F2937; }
         .text-white, .text-white * { color: white !important; }
         
-        /* 兩列式色彩佈局 */
         .color-grid { display: grid; grid-template-rows: repeat(2, 42px); grid-auto-flow: column; gap: 12px; overflow-x: auto; padding: 10px 4px; }
         .color-dot { width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); cursor: pointer; transition: 0.2s; }
         .color-dot.active { transform: scale(1.2); border-color: #1F2937; }
 
-        /* 單一下拉符號 */
         .clean-select {
             appearance: none; -webkit-appearance: none;
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%231F2937' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
@@ -32,7 +30,6 @@
             padding-right: 2.5rem;
         }
 
-        /* 天氣窗框 */
         .weather-banner {
             margin: 16px; padding: 20px; border-radius: 1.5rem;
             background: linear-gradient(135deg, var(--main-theme), #1F2937);
@@ -47,6 +44,9 @@
         .date-card.active { border-color: transparent; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
 
         .modal-overlay { background-color: rgba(0,0,0,0.4); backdrop-filter: blur(8px); position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        
+        /* 修正日期選擇器在手機上的顯示寬度 */
+        input[type="date"] { min-width: 0; width: 100%; }
     </style>
 </head>
 <body>
@@ -162,7 +162,10 @@
                 </div>
                 <div class="bg-gray-50 p-4 rounded-2xl border-2 border-dashed space-y-3">
                     <input v-model="newHotel.name" placeholder="住宿名稱" class="w-full p-3 bg-white rounded-xl text-sm font-bold border-0">
-                    <div class="grid grid-cols-2 gap-2"><input v-model="newHotel.checkIn" type="date" class="p-3 bg-white rounded-xl text-xs font-bold border-0"><input v-model="newHotel.checkOut" type="date" class="p-3 bg-white rounded-xl text-xs font-bold border-0"></div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="text-[9px] font-black text-gray-400 ml-1 uppercase tracking-tighter">Check In</label><input v-model="newHotel.checkIn" type="date" class="p-3 bg-white rounded-xl text-xs font-bold border-0"></div>
+                        <div><label class="text-[9px] font-black text-gray-400 ml-1 uppercase tracking-tighter">Check Out</label><input v-model="newHotel.checkOut" type="date" class="p-3 bg-white rounded-xl text-xs font-bold border-0"></div>
+                    </div>
                     <button @click="addHotel" class="w-full py-3 text-white rounded-xl font-black" :style="{ backgroundColor: currentThemeColor }">儲存住宿</button>
                 </div>
             </div>
@@ -179,19 +182,17 @@
         <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl">
             <h3 class="font-black text-2xl mb-6">旅程設定</h3>
             <div class="space-y-4">
-                <input v-model="activeTripData.name" placeholder="我的冒險名稱" class="w-full p-4 bg-gray-50 rounded-2xl border-0 font-bold">
-                <select v-model="activeTripData.category" class="clean-select w-full p-4 bg-gray-50 rounded-2xl border-0 text-sm font-bold">
-                    <option value="國內旅遊">國內旅遊</option><option value="國外旅遊">國外旅遊</option><option value="露營">露營</option>
-                </select>
+                <div><label class="text-[10px] font-black text-gray-400 ml-1 uppercase">Trip Name</label><input v-model="activeTripData.name" placeholder="我的冒險名稱" class="w-full p-4 bg-gray-50 rounded-2xl border-0 font-bold"></div>
+                <div><label class="text-[10px] font-black text-gray-400 ml-1 uppercase">Category</label><select v-model="activeTripData.category" class="clean-select w-full p-4 bg-gray-50 rounded-2xl border-0 text-sm font-bold"><option value="國內旅遊">國內旅遊</option><option value="國外旅遊">國外旅遊</option><option value="露營">露營</option></select></div>
                 <div>
-                    <label class="text-[10px] font-black text-gray-400 mb-2 block">主題配色 (兩列橫滑)</label>
+                    <label class="text-[10px] font-black text-gray-400 mb-2 block uppercase">Theme Color</label>
                     <div class="color-grid hide-scrollbar">
                         <div v-for="c in morandiColors" :key="c" @click="activeTripData.themeColor = c" class="color-dot" :class="{active: activeTripData.themeColor === c}" :style="{backgroundColor: c}"></div>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="date" v-model="activeTripData.startDate" class="p-4 bg-gray-50 rounded-2xl text-xs border-0 font-bold">
-                    <input type="date" v-model="activeTripData.endDate" class="p-4 bg-gray-50 rounded-2xl text-xs border-0 font-bold">
+                    <div><label class="text-[10px] font-black text-gray-400 ml-1 uppercase">Start Date</label><input type="date" v-model="activeTripData.startDate" class="w-full p-3 bg-gray-50 rounded-2xl text-[11px] border-0 font-bold"></div>
+                    <div><label class="text-[10px] font-black text-gray-400 ml-1 uppercase">End Date</label><input type="date" v-model="activeTripData.endDate" class="w-full p-3 bg-gray-50 rounded-2xl text-[11px] border-0 font-bold"></div>
                 </div>
             </div>
             <div class="flex space-x-3 mt-8"><button @click="closeTripModal" class="flex-1 py-4 text-gray-400 font-bold">取消</button><button @click="saveTrip" class="flex-1 py-4 text-white rounded-2xl font-black shadow-lg" :style="{ backgroundColor: showEditTripModal ? activeTripData.themeColor : '#4C7B7B' }">儲存設定</button></div>
@@ -238,10 +239,10 @@
             const trips = ref([]);
 
             onMounted(() => {
-                const data = localStorage.getItem('TRAVEL_V2.9');
+                const data = localStorage.getItem('TRAVEL_V3.0');
                 if (data) trips.value = JSON.parse(data);
             });
-            watch(trips, (v) => localStorage.setItem('TRAVEL_V2.9', JSON.stringify(v)), { deep: true });
+            watch(trips, (v) => localStorage.setItem('TRAVEL_V3.0', JSON.stringify(v)), { deep: true });
 
             const currentThemeColor = computed(() => selectedTrip.value?.themeColor || '#4C7B7B');
             const sortedTrips = computed(() => {
@@ -259,7 +260,6 @@
             const openAddTripModal = () => { activeTripData.value = { name: '', themeColor: '#4C7B7B', startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0], category: '國內旅遊' }; showAddTripModal.value = true; };
             const openEditTripModal = () => { activeTripData.value = { ...selectedTrip.value }; showEditTripModal.value = true; };
             const closeTripModal = () => { showAddTripModal.value = false; showEditTripModal.value = false; };
-            
             const saveTrip = () => {
                 const dates = []; let c = new Date(activeTripData.value.startDate); const e = new Date(activeTripData.value.endDate);
                 while(c <= e) { dates.push(c.toISOString().split('T')[0]); c.setDate(c.getDate()+1); }
@@ -285,7 +285,6 @@
                 selectedTrip.value.data.itinerary[idx] = { ...editingItinerary.value };
                 showEditItineraryModal.value = false;
             };
-
             const addHotel = () => {
                 if(!newHotel.value.name) return;
                 selectedTrip.value.data.hotels.push({ ...newHotel.value });
@@ -302,7 +301,6 @@
                 selectedTrip.value.data.shopping.push({ name: newShoppingItem.value, done: false });
                 newShoppingItem.value = '';
             };
-
             const openWeather = () => {
                 const d = selectedTrip.value.data.dates[selectedTrip.value.data.selectedDateIndex];
                 window.open(`https://www.google.com/search?q=${encodeURIComponent(selectedTrip.value.name + ' 天氣 ' + d)}`, '_blank');
