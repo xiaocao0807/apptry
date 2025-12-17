@@ -16,11 +16,12 @@
             theme: {
                 extend: {
                     colors: {
-                        // === 基準配色 (標題使用日系藍色) ===
-                        'jp-white': '#F5F5F5',           // 淺灰色 (整體背景)
-                        'jp-blue-light': '#E0F7FA',      // 較淺的藍色 (資訊區塊)
-                        'jp-blue-dark': '#03A9F4',       // **日系藍色 (標題/強調色)**
+                        // === 核心變動: 降低飽和度 ===
+                        // 這是您要求的低飽和度顏色
+                        'jp-blue-light': '#E0F7FA',      // 極淺灰藍色 (飽和度低，更柔和)
+                        'jp-white': '#F5F5F5',           // 柔和淺灰色 (背景 - 降低純白感)
                         // ===========================
+                        'jp-blue-dark': '#0288D1',       // 深海藍 (文字/強調 - 保持不變)
                         'jp-accent-green': '#A5D6A7',    // 活潑綠 
                         'jp-accent-pink': '#FFCCBC',     // 櫻花粉
                         'jp-accent-yellow': '#FFECB3'    // 待定黃
@@ -865,7 +866,7 @@
             // ======================================
             const currentView = ref('home'); // 'home' | 'tripDetail'
             
-            // 基準版分類 (還原為簡化版本，只用於資料結構，不用於篩選)
+            // 基準版分類 
             const tripTypes = ['國外旅遊', '國內旅遊', '商務旅行', '其他'];
             
             const showCompleted = ref(false);
