@@ -18,10 +18,10 @@
                     colors: {
                         // === 核心變動: 降低飽和度 ===
                         // 這是您要求的低飽和度顏色
-                        'jp-blue-light': '#E0F7FA',  
+                        'jp-blue-light': '#E0F7FA',      // 極淺灰藍色 (飽和度低，更柔和)
                         'jp-white': '#F5F5F5',           // 柔和淺灰色 (背景 - 降低純白感)
                         // ===========================
-                        'jp-blue-dark': '#0288D1',    
+                        'jp-blue-dark': '#0288D1',       // 深海藍 (文字/強調 - 保持不變)
                         'jp-accent-green': '#A5D6A7',    // 活潑綠 
                         'jp-accent-pink': '#FFCCBC',     // 櫻花粉
                         'jp-accent-yellow': '#FFECB3'    // 待定黃
@@ -34,6 +34,7 @@
     <style>
         /* 確保字體使用日系風格 */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+
         body {
             font-family: 'Noto Sans TC', sans-serif;
             /* 1. 使用新的淺灰背景色 */
@@ -45,6 +46,7 @@
         /* 模擬手機 App 介面的樣式 */
         #app {
             max-width: 500px;
+            /* 限制寬度模擬手機 */
             margin: 0 auto;
             min-height: 100vh;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); /* 增加 App 質感陰影 */
@@ -118,6 +120,7 @@
             position: relative;
             z-index: 2;
             display: flex; 
+            /* 核心修正 2：垂直置中，使左側圖示與中間文字對齊 */
             align-items: center;
             width: 100%;
         }
@@ -125,6 +128,8 @@
         /* ================================================= */
         /* 左側欄位樣式 */
         /* ================================================= */
+
+        /* 讓左側的 時間/分類 圖示區塊更突出 */
         .itinerary-left-column {
             display: flex;
             flex-direction: column; 
@@ -134,6 +139,7 @@
             width: 50px;
         }
 
+        /* 增大行程類別圖示 */
         .itinerary-icon-circle {
             width: 38px;
             height: 38px; 
@@ -144,6 +150,7 @@
             margin-bottom: 4px;
         }
 
+        /* 修正時間文字大小和顏色 */
         .itinerary-time {
             font-size: 0.75rem;
             color: theme('colors.gray.600');
@@ -151,10 +158,11 @@
         }
 
         /* ================================================= */
-        /* 右側操作按鈕區：圓形外框 */
+        /* 右側操作按鈕區：圓形外框 (核心修正：改為 -2px) */
         /* ================================================= */
         .action-button-group {
             position: absolute;
+            /* 核心修正 1：將頂部和右側邊距調整為 -2px */
             top: -2px; 
             right: -2px;
             display: flex;
@@ -171,6 +179,7 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
+            /* 圓形外框效果 */
             border: 1px solid theme('colors.gray.400'); 
             background-color: white;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -183,21 +192,29 @@
             background-color: theme('colors.gray.50');
         }
 
-        /* 中央內容區 */
+        /* ================================================= */
+        /* *** 核心修正區域：解決重疊問題與備註滑動 *** */
+        /* ================================================= */
+
+        /* 中央內容區，用於限制寬度，避免與右側按鈕重疊 */
         .itinerary-main-content {
             flex-grow: 1;
+            /* 總寬度減去 (左側欄位寬度 50px + 左側邊距 15px + 右側按鈕安全邊距約 40px) */
+            /* 這樣內容區 Max-Width = 100% - 105px */
             width: calc(100% - 105px);
             max-width: calc(100% - 105px); 
         }
 
+        /* 行程名稱/地址：使用 Tailwind 的 truncate 配合父容器的限制寬度來截斷 */
         .itinerary-main-content h4,
         .itinerary-main-content p.truncate {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 100%; 
+            max-width: 100%; /* 確保文本不會超過它的限制容器 */
         }
 
+        /* 備註樣式：實現左右滾動和單行顯示 */
         .itinerary-notes {
              border-left: none !important;
              padding: 8px 12px; 
@@ -207,9 +224,12 @@
              font-size: 0.875rem; 
              color: theme('colors.gray.700');
              box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+             /* 核心修正：單行顯示並允許水平滾動 */
              white-space: nowrap; 
              overflow-x: auto;
              max-width: 100%;     
+
+             /* 隱藏備註的水平滑動條 */
              -ms-overflow-style: none;
              scrollbar-width: none;  
         }
@@ -218,19 +238,28 @@
             display: none;
         }
 
+
+        /* ================================================= */
+        /* 行程點線過渡效果 */
+        /* ================================================= */
         .itinerary-item-wrapper {
             position: relative;
         }
 
+        /* 點狀虛線 */
         .timeline-connector {
             position: absolute;
+            /* 定位到左側圖示區的中央下方 */
+            /* 由於左側欄位置中，我們需要調整 top 的值讓線條從圖示圓圈下方開始 */
             top: 70px;
             left: 27px; 
             width: 0;
+            /* 修正：讓線條一直延伸到下一個卡片的位置，因為內容置中了，所以計算高度變複雜，暫時保持原樣 */
             height: calc(100% - 70px);
             border-left: 1px dotted theme('colors.gray.400');
             z-index: 0; 
         }
+        /* 移除最後一個項目的連接線 */
         .itinerary-item-wrapper:last-child .timeline-connector {
             display: none;
         }
@@ -264,9 +293,11 @@
     </header>
 
     <main v-if="currentView === 'home'" class="p-4">
+        
         <div class="flex justify-end items-center mb-4 p-2 bg-jp-white rounded-xl shadow-sm">
             <label for="showCompletedToggle" class="text-sm text-gray-600 mr-2">顯示已完成計畫</label>
-            <input type="checkbox" id="showCompletedToggle" v-model="showCompleted" class="h-4 w-4 text-jp-blue-dark border-gray-300 rounded focus:ring-jp-blue-dark">
+            <input type="checkbox" id="showCompletedToggle" v-model="showCompleted" 
+                   class="h-4 w-4 text-jp-blue-dark border-gray-300 rounded focus:ring-jp-blue-dark">
         </div>
 
         <h2 v-if="upcomingTrips.length > 0" class="text-lg font-semibold text-jp-blue-dark mb-3 border-l-4 border-jp-blue-dark pl-2">
@@ -274,7 +305,8 @@
         </h2>
         
         <div class="space-y-4 mb-8">
-            <div v-for="trip in upcomingTrips" :key="trip.id" class="trip-card p-4 rounded-xl shadow-md bg-white border-t-4 border-jp-accent-pink flex justify-between items-center">
+            <div v-for="trip in upcomingTrips" :key="trip.id" 
+                class="trip-card p-4 rounded-xl shadow-md bg-white border-t-4 border-jp-accent-pink flex justify-between items-center">
                 <div @click.stop="goToTrip(trip)" class="trip-card-content cursor-pointer">
                     <p class="text-xs font-semibold uppercase text-jp-blue-dark mb-1">{{ trip.type }}</p>
                     <h3 class="text-xl font-bold text-gray-800 truncate mb-1">{{ trip.name }}</h3>
@@ -285,7 +317,8 @@
                         </span>
                     </div>
                 </div>
-                <button @click.stop="confirmRemoveTrip(trip.id, trip.name)" class="text-red-500 hover:text-red-700 ml-4 p-2 rounded-full hover:bg-red-50 transition duration-150 flex-shrink-0">
+                <button @click.stop="confirmRemoveTrip(trip.id, trip.name)" 
+                         class="text-red-500 hover:text-red-700 ml-4 p-2 rounded-full hover:bg-red-50 transition duration-150 flex-shrink-0">
                     <i class="fas fa-trash-alt"></i>
                 </button>
             </div>
@@ -296,7 +329,8 @@
                 已完成計畫 ({{ completedTrips.length }})
             </h2>
             <div class="space-y-4">
-                 <div v-for="trip in completedTrips" :key="trip.id" class="trip-card p-4 rounded-xl shadow-md bg-white border-t-4 border-gray-300 opacity-70 flex justify-between items-center">
+                 <div v-for="trip in completedTrips" :key="trip.id" 
+                      class="trip-card p-4 rounded-xl shadow-md bg-white border-t-4 border-gray-300 opacity-70 flex justify-between items-center">
                     <div @click.stop="goToTrip(trip)" class="trip-card-content cursor-pointer">
                         <p class="text-xs font-semibold uppercase text-gray-500 mb-1">{{ trip.type }}</p>
                         <h3 class="text-xl font-bold text-gray-800 truncate mb-1">{{ trip.name }}</h3>
@@ -307,218 +341,614 @@
                             </span>
                         </div>
                     </div>
-                     <button @click.stop="confirmRemoveTrip(trip.id, trip.name)" class="text-red-500 hover:text-red-700 ml-4 p-2 rounded-full hover:bg-red-50 transition duration-150 flex-shrink-0">
+                     <button @click.stop="confirmRemoveTrip(trip.id, trip.name)" 
+                             class="text-red-500 hover:text-red-700 ml-4 p-2 rounded-full hover:bg-red-50 transition duration-150 flex-shrink-0">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
             </div>
         </template>
+        
+        <p v-if="!sortedTrips.length" class="text-center text-gray-500 mt-10 p-4 border-2 border-dashed rounded-xl">
+            目前沒有任何顯示中的旅遊計畫。
+        </p>
     </main>
 
     <section v-if="currentView === 'tripDetail'" class="p-4">
-        <div v-if="selectedTrip.data.currentTab === 'itinerary'" class="space-y-4">
-            <div class="flex overflow-x-auto whitespace-nowrap space-x-3 p-2 border rounded-xl bg-jp-white hide-scrollbar">
-                <div v-for="(date, index) in selectedTrip.data.dates" :key="index" @click="selectedTrip.data.selectedDateIndex = index" :class="['date-card p-2 rounded-xl transition-colors duration-200 shadow-sm', selectedTrip.data.selectedDateIndex === index ? 'bg-jp-blue-dark text-white' : 'bg-white text-gray-700 hover:bg-gray-100']">
-                    <span class="text-xs opacity-80">{{ getMonthAbbreviation(date) }}</span>
-                    <span class="text-lg font-bold">{{ new Date(date).getDate() }}</span>
-                    <span class="text-xs opacity-80">{{ getDayOfWeek(date) }}</span>
-                </div>
-            </div>
+        
+        <div class="space-y-4">
             
-            <div v-if="sortedCurrentItinerary.length" class="space-y-3 pt-2">
-                <div v-for="(item, idx) in sortedCurrentItinerary" :key="item.originalIndex" class="itinerary-item-wrapper">
-                    <div v-if="idx < sortedCurrentItinerary.length - 1" class="timeline-connector"></div>
-                    <div class="p-4 rounded-xl shadow-md relative flex items-start itinerary-card" :style="{ borderLeft: `5px solid ${getItineraryColor(item.category)}` }">
-                        <div v-if="item.imageURL" class="itinerary-background" :style="{ backgroundImage: `url('${item.imageURL}')`, opacity: item.imageOpacity / 100 }"></div>
-                        <div class="itinerary-content-wrapper itinerary-content">
-                            <div class="itinerary-left-column">
-                                <div class="itinerary-icon-circle" :style="{ backgroundColor: getItineraryColor(item.category) }">
-                                    <i :class="getItineraryIcon(item.category)" class="text-white text-base"></i>
+            <div v-if="selectedTrip.data.currentTab === 'itinerary'" class="space-y-4">
+                
+                <div class="flex overflow-x-auto whitespace-nowrap space-x-3 p-2 border rounded-xl bg-jp-white hide-scrollbar">
+                    <div v-for="(date, index) in selectedTrip.data.dates" :key="index"
+                         @click="selectedTrip.data.selectedDateIndex = index"
+                         :class="['date-card p-2 rounded-xl transition-colors duration-200 shadow-sm', 
+                              selectedTrip.data.selectedDateIndex === index ? 'bg-jp-blue-dark text-white' : 'bg-white text-gray-700 hover:bg-gray-100']">
+                        
+                        <span class="text-xs opacity-80">{{ getMonthAbbreviation(date) }}</span>
+                        <span class="text-lg font-bold">{{ new Date(date).getDate() }}</span>
+                        <span class="text-xs opacity-80">{{ getDayOfWeek(date) }}</span>
+                    </div>
+                </div>
+                
+                <div v-if="sortedCurrentItinerary.length" class="space-y-3 pt-2">
+                    <div v-for="(item, idx) in sortedCurrentItinerary" :key="item.originalIndex"
+                         class="itinerary-item-wrapper">
+                         
+                        <div v-if="idx < sortedCurrentItinerary.length - 1" class="timeline-connector"></div>
+                        
+                        <div class="p-4 rounded-xl shadow-md relative flex items-start itinerary-card"
+                             :style="{ borderLeft: `5px solid ${getItineraryColor(item.category)}` }">
+                            
+                            <div v-if="item.imageURL" 
+                                 class="itinerary-background"
+                                 :style="{ 
+                                     backgroundImage: `url('${item.imageURL}')`,
+                                     opacity: item.imageOpacity / 100 
+                                  }">
+                            </div>
+
+                            <div class="itinerary-content-wrapper itinerary-content">
+                                
+                                <div class="itinerary-left-column">
+                                    <div class="itinerary-icon-circle"
+                                         :style="{ backgroundColor: getItineraryColor(item.category) }">
+                                        <i :class="getItineraryIcon(item.category)" class="text-white text-base"></i>
+                                    </div>
+                                    <p class="itinerary-time">{{ item.time || '未定' }}</p>
                                 </div>
-                                <p class="itinerary-time">{{ item.time || '未定' }}</p>
-                            </div>
-                            <div class="itinerary-main-content">
-                                <h4 class="text-lg font-semibold text-gray-800">{{ item.name }}</h4>
-                                <p class="text-xs text-gray-600 truncate">{{ item.address }}</p>
-                                <p v-if="item.notes" class="itinerary-notes">
-                                    <i class="fas fa-sticky-note mr-1 text-gray-500"></i> {{ item.notes }}
-                                </p>
-                            </div>
-                            <div class="action-button-group">
-                                <button @click="openEditItineraryModal(item)" class="action-button-circle text-gray-500 hover:text-jp-blue-dark">
-                                    <i class="fas fa-pen text-sm"></i>
-                                </button>
-                                <button v-if="item.address" @click="openMap(item.address)" class="action-button-circle text-jp-blue-dark hover:text-jp-blue-dark/80">
-                                    <i class="fas fa-map-marker-alt text-sm"></i>
-                                </button>
-                                <button @click="confirmRemoveItineraryItem(item.originalIndex, item.name)" class="action-button-circle text-red-500 hover:text-red-700">
-                                    <i class="fas fa-trash-alt text-sm"></i>
-                                </button>
+                                
+                                <div class="itinerary-main-content">
+                                    <h4 class="text-lg font-semibold text-gray-800">{{ item.name }}</h4>
+                                    <p class="text-xs text-gray-600 truncate">{{ item.address }}</p>
+                                    
+                                    <p v-if="item.notes" 
+                                       class="itinerary-notes">
+                                       <i class="fas fa-sticky-note mr-1 text-gray-500"></i> {{ item.notes }}
+                                    </p>
+                                </div>
+                                
+                                <div class="action-button-group">
+                                    <button @click="openEditItineraryModal(item)" 
+                                            class="action-button-circle text-gray-500 hover:text-jp-blue-dark">
+                                        <i class="fas fa-pen text-sm"></i>
+                                    </button>
+                                    
+                                    <button v-if="item.address" @click="openMap(item.address)" 
+                                            class="action-button-circle text-jp-blue-dark hover:text-jp-blue-dark/80">
+                                        <i class="fas fa-map-marker-alt text-sm"></i>
+                                    </button>
+                                    
+                                    <button @click="confirmRemoveItineraryItem(item.originalIndex, item.name)" 
+                                            class="action-button-circle text-red-500 hover:text-red-700">
+                                        <i class="fas fa-trash-alt text-sm"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                <p v-else class="text-center text-gray-500 p-4 border-2 border-dashed rounded-xl mt-4">本日尚無行程。</p>
             </div>
-            <p v-else class="text-center text-gray-500 p-4 border-2 border-dashed rounded-xl mt-4">本日尚無行程。</p>
-        </div>
+        
+            <div v-if="selectedTrip.data.currentTab === 'info'" class="space-y-4">
+                <div class="p-4 rounded-xl bg-jp-accent-yellow/50 shadow-md">
+                    <h4 class="font-bold text-lg mb-2 text-orange-800">匯率換算</h4>
+                    <p class="text-sm text-gray-600 mb-2">基準匯率 (JPY/TWD): 0.215</p>
+                    <input type="number" v-model.number="selectedTrip.data.currencyInput" placeholder="輸入日幣金額 (JPY)"
+                           class="w-full p-2 border rounded-md focus:border-jp-blue-dark focus:ring-jp-blue-dark">
+                    <p class="mt-3 text-lg font-bold text-gray-800">
+                        約等於: {{ formatNumber(selectedTrip.data.currencyInput * 0.215) }} TWD
+                    </p>
+                </div>
 
-        <div v-if="selectedTrip.data.currentTab === 'info'" class="space-y-4">
-            <div class="p-4 rounded-xl bg-jp-accent-yellow/50 shadow-md">
-                <h4 class="font-bold text-lg mb-2 text-orange-800">匯率換算</h4>
-                <p class="text-sm text-gray-600 mb-2">基準匯率 (JPY/TWD): 0.215</p> 
-                <input type="number" v-model.number="selectedTrip.data.currencyInput" placeholder="輸入日幣金額 (JPY)" class="w-full p-2 border rounded-md focus:border-jp-blue-dark focus:ring-jp-blue-dark">
-                <p class="mt-3 text-lg font-bold text-gray-800">約等於: {{ formatNumber(selectedTrip.data.currencyInput * 0.215) }} TWD</p>
+                <div class="p-4 rounded-xl bg-jp-blue-light/50 shadow-md">
+                    <div class="flex justify-between items-center mb-2 border-b pb-2">
+                         <h4 class="font-bold text-lg text-jp-blue-dark">住宿清單</h4>
+                         <button @click="isHotelEditMode = !isHotelEditMode" class="text-sm text-jp-blue-dark hover:underline flex items-center px-3 py-1 rounded-full" :class="isHotelEditMode ? 'bg-jp-accent-green/50' : 'bg-gray-100'">
+                            <i :class="[isHotelEditMode ? 'fas fa-check-circle' : 'fas fa-edit', 'mr-1']"></i>
+                            {{ isHotelEditMode ? '完成編輯' : '編輯' }}
+                         </button>
+                    </div>
+
+                    <div v-if="isHotelEditMode" class="mb-4">
+                        <button @click="showAddHotelModal = true" class="w-full py-2 bg-jp-blue-dark text-white rounded-lg hover:opacity-90 transition text-sm">
+                            <i class="fas fa-plus mr-1"></i> 新增住宿
+                        </button>
+                    </div>
+                    
+                    <ul class="space-y-3">
+                        <li v-for="(hotel, index) in selectedTrip.data.hotels" :key="index" class="p-3 bg-white rounded-lg shadow-sm flex items-start">
+                             <button v-if="isHotelEditMode" @click="removeHotel(index)" class="text-red-500 hover:text-red-700 mr-2 mt-1 flex-shrink-0">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                            
+                            <div class="flex-1">
+                                <template v-if="isHotelEditMode">
+                                    <input type="text" v-model="hotel.name" class="font-semibold w-full p-1 border rounded-md mb-1 text-sm">
+                                    <input type="text" v-model="hotel.date" placeholder="入住/退房日期 (e.g., 12/15-12/18)" class="text-xs w-full p-1 border rounded-md mb-1">
+                                    <input type="text" v-model="hotel.address" placeholder="地址" class="text-xs w-full p-1 border rounded-md">
+                                </template>
+                                <template v-else>
+                                    <h5 class="font-semibold">{{ hotel.name }}</h5>
+                                    <p class="text-xs text-gray-600">{{ hotel.date }} | {{ hotel.address }}</p>
+                                    <button @click="openMap(hotel.address)" class="text-xs text-jp-blue-dark mt-1 hover:underline">
+                                        <i class="fas fa-map-marker-alt mr-1"></i> 顯示地圖位置
+                                    </button>
+                                </template>
+                            </div>
+                        </li>
+                         <li v-if="!selectedTrip.data.hotels.length" class="text-center text-gray-500 p-4 border-2 border-dashed rounded-xl">
+                            目前沒有住宿紀錄。
+                        </li>
+                    </ul>
+                </div>
             </div>
-            <div class="p-4 rounded-xl bg-jp-blue-light/50 shadow-md">
-                <div class="flex justify-between items-center mb-2 border-b pb-2">
-                   <h4 class="font-bold text-lg text-jp-blue-dark">住宿清單</h4>
-                     <button @click="isHotelEditMode = !isHotelEditMode" class="text-sm text-jp-blue-dark hover:underline flex items-center px-3 py-1 rounded-full" :class="isHotelEditMode ? 'bg-jp-accent-green/50' : 'bg-gray-100'">
-                        <i :class="[isHotelEditMode ? 'fas fa-check-circle' : 'fas fa-edit', 'mr-1']"></i>{{ isHotelEditMode ? '完成編輯' : '編輯' }}
-                     </button>
-                </div>
-                <div v-if="isHotelEditMode" class="mb-4">
-                    <button @click="showAddHotelModal = true" class="w-full py-2 bg-jp-blue-dark text-white rounded-lg hover:opacity-90 transition text-sm"><i class="fas fa-plus mr-1"></i> 新增住宿</button>
-                </div>
-                <ul class="space-y-3">
-                    <li v-for="(hotel, index) in selectedTrip.data.hotels" :key="index" class="p-3 bg-white rounded-lg shadow-sm flex items-start">
-                        <button v-if="isHotelEditMode" @click="removeHotel(index)" class="text-red-500 hover:text-red-700 mr-2 mt-1 flex-shrink-0"><i class="fas fa-times-circle"></i></button>
+            
+            <div v-if="selectedTrip.data.currentTab === 'shopping'" class="space-y-4">
+                <button @click="showShoppingModal = true" class="w-full py-2 bg-jp-blue-dark text-white rounded-lg hover:opacity-90 transition">
+                    <i class="fas fa-cart-plus mr-2"></i> 新增購物清單項目
+                </button>
+                
+                <div v-if="selectedTrip.data.shoppingList.length" class="space-y-3">
+                    <div v-for="(item, index) in selectedTrip.data.shoppingList" :key="index"
+                         class="flex items-center p-3 bg-white rounded-xl shadow-md transition duration-150"
+                         :class="{'opacity-50 line-through bg-jp-accent-green/30': item.isBought}">
+                        <input type="checkbox" v-model="item.isBought" class="h-5 w-5 text-jp-blue-dark border-gray-300 rounded focus:ring-jp-blue-dark mr-3">
                         <div class="flex-1">
-                            <template v-if="isHotelEditMode">
-                                <input type="text" v-model="hotel.name" class="font-semibold w-full p-1 border rounded-md mb-1 text-sm">
-                                <input type="text" v-model="hotel.date" placeholder="入住/退房日期 (e.g., 12/15-12/18)" class="text-xs w-full p-1 border rounded-md mb-1">
-                                <input type="text" v-model="hotel.address" placeholder="地址" class="text-xs w-full p-1 border rounded-md">
-                            </template>
-                            <template v-else>
-                                <h5 class="font-semibold">{{ hotel.name }}</h5>
-                                <p class="text-xs text-gray-600">{{ hotel.date }} | {{ hotel.address }}</p>
-                                <button @click="openMap(hotel.address)" class="text-xs text-jp-blue-dark mt-1 hover:underline"><i class="fas fa-map-marker-alt mr-1"></i> 顯示地圖位置</button>
-                            </template>
+                            <h4 class="font-semibold text-gray-800">{{ item.name }}</h4>
+                            <p v-if="item.price" class="text-sm text-gray-500">¥ {{ formatNumber(item.price) }}</p>
                         </div>
-                    </li>
-                </ul>
+                        <button @click="removeShoppingItem(index)" class="text-red-500 hover:text-red-700 ml-2">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <p v-else class="text-center text-gray-500 p-4 border-2 border-dashed rounded-xl mt-4">購物清單為空。</p>
             </div>
+            
+            <div v-if="selectedTrip.data.currentTab === 'expenses'" class="space-y-4">
+                 <button @click="showExpenseModal = true" class="w-full py-2 bg-jp-blue-dark text-white rounded-lg hover:opacity-90 transition">
+                    <i class="fas fa-wallet mr-2"></i> 紀錄一筆花費
+                </button>
+                
+                <div class="p-4 bg-jp-accent-pink/50 rounded-xl shadow-md text-red-800 font-bold text-center">
+                    <p class="text-sm">總支出 (JPY):</p>
+                    <p class="text-2xl">¥ {{ formatNumber(selectedTrip.data.totalExpensesJPY) }}</p>
+                    <p class="text-sm mt-1 text-red-700">(約 {{ formatNumber(selectedTrip.data.totalExpensesTWD) }} TWD)</p>
+                </div>
+                
+                <div v-if="selectedTrip.data.expenses.length" class="space-y-3">
+                    <div v-for="(expense, index) in selectedTrip.data.expenses" :key="index"
+                         class="bg-white p-4 rounded-xl shadow-md flex justify-between items-center border-l-4"
+                         :class="getCategoryColorClass(expense.category)">
+                        <div>
+                            <span class="text-xs text-gray-500 block">{{ expense.date }}</span>
+                            <h4 class="font-semibold text-gray-800 flex items-center">
+                                <i :class="[getCategoryIcon(expense.category), 'mr-2']"></i>
+                                {{ getCategoryLabel(expense.category) }} - {{ expense.name }}
+                            </h4>
+                            <span class="text-sm text-gray-600">{{ expense.paymentMethod }}</span>
+                        </div>
+                        <p class="text-lg font-bold text-red-600">¥ {{ formatNumber(expense.amount) }}</p>
+                    </div>
+                </div>
+                <p v-else class="text-center text-gray-500 p-4 border-2 border-dashed rounded-xl mt-4">目前沒有花費紀錄。</p>
+            </div>
+
         </div>
     </section>
-
-    <nav v-if="currentView === 'tripDetail'" class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t shadow-2xl max-w-[500px] mx-auto">
+    
+    <button v-if="currentView === 'tripDetail' && selectedTrip.data.currentTab === 'itinerary'" 
+            @click="showAddItineraryModal = true"
+            class="fixed bottom-20 right-5 w-14 h-14 bg-jp-accent-pink text-white rounded-full shadow-lg hover:bg-jp-accent-pink/80 transition duration-300 z-30 flex items-center justify-center text-2xl">
+        <i class="fas fa-plus"></i>
+    </button>
+    
+    <nav v-if="currentView === 'tripDetail'" 
+         class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t shadow-2xl max-w-[500px] mx-auto">
         <div class="flex h-14">
-            <button v-for="tab in tripTabs" :key="tab.id" @click="selectedTrip.data.currentTab = tab.id" :class="['flex-1 flex flex-col items-center justify-center text-xs font-medium transition-colors duration-200', selectedTrip.data.currentTab === tab.id ? 'text-jp-blue-dark' : 'text-gray-500 hover:text-jp-blue-dark/80']">
-                <i :class="[tab.icon, 'text-lg']"></i> <span>{{ tab.label }}</span>
+            <button v-for="tab in tripTabs" :key="tab.id" 
+                    @click="selectedTrip.data.currentTab = tab.id"
+                    :class="['flex-1 flex flex-col items-center justify-center text-xs font-medium transition-colors duration-200', 
+                             selectedTrip.data.currentTab === tab.id ? 'text-jp-blue-dark' : 'text-gray-500 hover:text-jp-blue-dark/80']">
+                <i :class="[tab.icon, 'text-lg']"></i> 
+                <span>{{ tab.label }}</span>
             </button>
         </div>
     </nav>
+
+    <div v-if="showAddTripModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
+            <h3 class="text-xl font-bold mb-4 border-b pb-2 text-jp-blue-dark">新增旅遊計畫</h3>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">旅遊名稱</label><input type="text" v-model="newTripName" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-jp-blue-dark focus:border-jp-blue-dark"></div>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">出發日期</label><input type="date" v-model="newTripStartDate" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-jp-blue-dark focus:border-jp-blue-dark"></div>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">回家日期</label><input type="date" v-model="newTripEndDate" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-jp-blue-dark focus:border-jp-blue-dark"></div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button @click="showAddTripModal = false" class="px-4 py-2 text-gray-600 border rounded-lg hover:bg-gray-100">取消</button>
+                <button @click="addNewTrip" class="px-4 py-2 bg-jp-blue-dark text-white rounded-lg hover:bg-jp-blue-dark/90">確認新增</button>
+            </div>
+        </div>
+    </div>
+    
+    <div v-if="showEditTripModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
+            <h3 class="text-xl font-bold mb-4 border-b pb-2 text-jp-blue-dark">編輯旅遊計畫</h3>
+            
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">旅遊名稱</label><input type="text" v-model="editingTripData.name" class="mt-1 block w-full border rounded-md shadow-sm p-2"></div>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">出發日期</label><input type="date" v-model="editingTripData.startDate" class="mt-1 block w-full border rounded-md shadow-sm p-2"></div>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">回家日期</label><input type="date" v-model="editingTripData.endDate" class="mt-1 block w-full border rounded-md shadow-sm p-2"></div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">分類 (類型)</label>
+                <select v-model="editingTripData.type" class="mt-1 block w-full border rounded-md p-2">
+                    <option value="家族旅行">家族旅行</option>
+                    <option value="情侶旅行">情侶旅行</option>
+                    <option value="自駕遊">自駕遊</option>
+                    <option value="主題旅行">主題旅行</option>
+                    <option value="未分類">未分類</option>
+                </select>
+            </div>
+            
+            <div class="flex justify-end space-x-3 mt-6">
+                <button @click="showEditTripModal = false" class="px-4 py-2 text-gray-600 border rounded-lg hover:bg-gray-100">取消</button>
+                <button @click="saveEditedTrip" class="px-4 py-2 bg-jp-blue-dark text-white rounded-lg hover:bg-jp-blue-dark/90">確認儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <div v-if="showAddHotelModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
+            <h3 class="text-xl font-bold mb-4 border-b pb-2 text-jp-blue-dark">新增住宿</h3>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">飯店/住宿名稱</label><input type="text" v-model="newHotel.name" class="mt-1 block w-full border rounded-md p-2"></div>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">入住/退房日期 (e.g., 12/15-12/18)</label><input type="text" v-model="newHotel.date" class="mt-1 block w-full border rounded-md p-2"></div>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">地址 (用於導航)</label><input type="text" v-model="newHotel.address" class="mt-1 block w-full border rounded-md p-2"></div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button @click="showAddHotelModal = false" class="px-4 py-2 text-gray-600 border rounded-lg">取消</button>
+                <button @click="addHotel" class="px-4 py-2 bg-jp-blue-dark text-white rounded-lg">確認新增</button>
+            </div>
+        </div>
+    </div>
+
+    <div v-if="showAddItineraryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
+            <h3 class="text-xl font-bold mb-4 border-b pb-2 text-jp-blue-dark">新增行程項目</h3>
+            <p class="text-xs text-red-500 mb-4">目前正在為 {{ new Date(selectedTrip.data.dates[selectedTrip.data.selectedDateIndex]).toLocaleDateString() }} 新增行程。</p>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">行程分類</label>
+                <select v-model="newItinerary.category" class="mt-1 block w-full border rounded-md p-2">
+                    <option v-for="(cat, key) in ITINERARY_CATEGORIES" :key="key" :value="key">
+                        {{ cat.label }}
+                    </option>
+                </select>
+            </div>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">時間 (手機可選時鐘)</label><input type="time" v-model="newItinerary.time" class="mt-1 block w-full border rounded-md p-2"></div>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">行程名稱</label><input type="text" v-model="newItinerary.name" class="mt-1 block w-full border rounded-md p-2"></div>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">地址 (必填，用於地圖)</label><input type="text" v-model="newItinerary.address" class="mt-1 block w-full border rounded-md p-2"></div>
+            
+            <div class="mb-4 border p-3 rounded-lg bg-gray-50">
+                <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                    <i class="fas fa-image mr-1"></i> 行程背景圖
+                </label>
+                <input type="url" v-model="newItinerary.imageURL" placeholder="請輸入圖片 URL (選填)" class="mt-1 block w-full border rounded-md shadow-sm p-2 text-sm">
+                <label class="block text-sm font-medium text-gray-700 mt-3 mb-1">圖片透明度 ({{ newItinerary.imageOpacity }}%)</label>
+                <input type="range" min="10" max="100" step="5" v-model.number="newItinerary.imageOpacity" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg">
+            </div>
+
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">備註</label><textarea v-model="newItinerary.notes" rows="3" placeholder="例如：預約號碼、特殊飲食需求、交通方式..." class="mt-1 block w-full border rounded-md p-2 resize-none"></textarea></div>
+            
+            <div class="flex justify-end space-x-3 mt-6">
+                <button @click="showAddItineraryModal = false" class="px-4 py-2 text-gray-600 border rounded-lg">取消</button>
+                <button @click="addItineraryItem" class="px-4 py-2 bg-jp-blue-dark text-white rounded-lg">確認新增</button>
+            </div>
+        </div>
+    </div>
+
+    <div v-if="showEditItineraryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
+            <h3 class="text-xl font-bold mb-4 border-b pb-2 text-jp-blue-dark">編輯行程項目</h3>
+            <p class="text-xs text-gray-500 mb-4">修改後行程將自動依照時間重新排序。</p>
+            
+            <template v-if="editingItineraryItem">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700">行程分類</label>
+                    <select v-model="editingItineraryItem.category" class="mt-1 block w-full border rounded-md p-2">
+                        <option v-for="(cat, key) in ITINERARY_CATEGORIES" :key="key" :value="key">
+                            {{ cat.label }}
+                        </option>
+                    </select>
+                </div>
+                <div class="mb-4"><label class="block text-sm font-medium text-gray-700">時間 (手機可選時鐘)</label><input type="time" v-model="editingItineraryItem.time" class="mt-1 block w-full border rounded-md p-2"></div>
+                <div class="mb-4"><label class="block text-sm font-medium text-gray-700">行程名稱</label><input type="text" v-model="editingItineraryItem.name" class="mt-1 block w-full border rounded-md p-2"></div>
+                <div class="mb-4"><label class="block text-sm font-medium text-gray-700">地址 (用於地圖)</label><input type="text" v-model="editingItineraryItem.address" class="mt-1 block w-full border rounded-md p-2"></div>
+                
+                <div class="mb-4 border p-3 rounded-lg bg-gray-50">
+                    <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        <i class="fas fa-image mr-1"></i> 行程背景圖
+                    </label>
+                    <input type="url" v-model="editingItineraryItem.imageURL" placeholder="請輸入圖片 URL (選填)" class="mt-1 block w-full border rounded-md shadow-sm p-2 text-sm">
+                    <label class="block text-sm font-medium text-gray-700 mt-3 mb-1">圖片透明度 ({{ editingItineraryItem.imageOpacity }}%)</label>
+                    <input type="range" min="10" max="100" step="5" v-model.number="editingItineraryItem.imageOpacity" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg">
+                </div>
+
+                <div class="mb-4"><label class="block text-sm font-medium text-gray-700">備註</label><textarea v-model="editingItineraryItem.notes" rows="3" placeholder="例如：注意事項、預約資訊..." class="mt-1 block w-full border rounded-md p-2 resize-none"></textarea></div>
+            </template>
+
+            <div class="flex justify-end items-center mt-6">
+                <div class="flex space-x-3">
+                    <button @click="showEditItineraryModal = false" class="px-4 py-2 text-gray-600 border rounded-lg">取消</button>
+                    <button @click="saveEditedItineraryItem" class="px-4 py-2 bg-jp-blue-dark text-white rounded-lg">確認儲存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div v-if="showShoppingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
+            <h3 class="text-xl font-bold mb-4 border-b pb-2 text-jp-blue-dark">新增欲購項目</h3>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">商品名稱</label><input type="text" v-model="newShoppingItem.name" class="mt-1 block w-full border rounded-md p-2 shadow-sm"></div>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">預計價格 (JPY)</label><input type="number" v-model="newShoppingItem.price" class="mt-1 block w-full border rounded-md p-2 shadow-sm"></div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button @click="showShoppingModal = false" class="px-4 py-2 text-gray-600 border rounded-lg">取消</button>
+                <button @click="addShoppingItem" class="px-4 py-2 bg-jp-blue-dark text-white rounded-lg">確認新增</button>
+            </div>
+        </div>
+    </div>
+
+    <div v-if="showExpenseModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
+            <h3 class="text-xl font-bold mb-4 border-b pb-2 text-jp-blue-dark">紀錄花費</h3>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">日期</label>
+                <select v-model="newExpense.date" class="mt-1 block w-full border rounded-md p-2 shadow-sm">
+                    <option v-for="date in selectedTrip.data.dates" :key="date" :value="date">{{ date }}</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">分類</label>
+                <select v-model="newExpense.category" class="mt-1 block w-full border rounded-md p-2 shadow-sm">
+                    <option v-for="(cat, key) in EXPENSE_CATEGORIES" :key="key" :value="key">{{ cat.label }}</option>
+                </select>
+            </div>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">項目名稱</label><input type="text" v-model="newExpense.name" class="mt-1 block w-full border rounded-md p-2 shadow-sm"></div>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700">金額 (JPY)</label><input type="number" v-model="newExpense.amount" class="mt-1 block w-full border rounded-md p-2 shadow-sm"></div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">支付方式</label>
+                <select v-model="newExpense.paymentMethod" class="mt-1 block w-full border rounded-md p-2 shadow-sm">
+                    <option value="現金 (JPY)">現金 (JPY)</option>
+                    <option value="信用卡/Apple Pay">信用卡/Apple Pay</option>
+                    <option value="IC 卡 (Suica/Pasmo)">IC 卡 (Suica/Pasmo)</option>
+                </select>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button @click="showExpenseModal = false" class="px-4 py-2 text-gray-600 border rounded-lg">取消</button>
+                <button @click="addExpense" class="px-4 py-2 bg-jp-blue-dark text-white rounded-lg">確認紀錄</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-    const { createApp, ref, computed, watch, reactive } = Vue;
+    const { createApp, ref, computed, watch, onMounted } = Vue;
 
+    // 定義行程分類
     const ITINERARY_CATEGORIES = {
-        attraction: { label: '景點', icon: 'fas fa-map-marker-alt', color: '#0288D1' },
-        food: { label: '美食', icon: 'fas fa-utensils', color: '#E53935' },
-        traffic: { label: '交通', icon: 'fas fa-bus', color: '#43A047' },
-        hotel: { label: '住宿', icon: 'fas fa-bed', color: '#FB8C00' },
-        shopping: { label: '購物', icon: 'fas fa-shopping-bag', color: '#8E24AA' },
-        other: { label: '其他', icon: 'fas fa-star', color: '#757575' }
+        'flight': { label: '航班/交通', icon: 'fas fa-plane', color: '#0288D1' }, // jp-blue-dark
+        'hotel': { label: '住宿', icon: 'fas fa-bed', color: '#7E57C2' },
+        'food': { label: '飲食', icon: 'fas fa-utensils', color: '#FF7043' },
+        'spot': { label: '景點', icon: 'fas fa-camera-retro', color: '#66BB6A' },
+        'shopping': { label: '購物', icon: 'fas fa-shopping-bag', color: '#EC407A' },
+        'other': { label: '其他', icon: 'fas fa-ellipsis-h', color: '#78909C' }
+    };
+
+    // 定義花費分類
+    const EXPENSE_CATEGORIES = {
+        'food': { label: '餐飲', icon: 'fas fa-utensils', colorClass: 'border-orange-400' },
+        'transport': { label: '交通', icon: 'fas fa-train', colorClass: 'border-blue-400' },
+        'shopping': { label: '購物', icon: 'fas fa-shopping-cart', colorClass: 'border-pink-400' },
+        'ticket': { label: '門票/活動', icon: 'fas fa-ticket-alt', colorClass: 'border-green-400' },
+        'other': { label: '雜項', icon: 'fas fa-ellipsis-h', colorClass: 'border-gray-400' }
     };
 
     createApp({
         setup() {
-            const currentView = ref('home');
-            const showCompleted = ref(false);
+            // --- 狀態定義 ---
+            const currentView = ref('home'); // 'home' or 'tripDetail'
+            const trips = ref(JSON.parse(localStorage.getItem('travel_trips') || '[]'));
             const selectedTrip = ref(null);
+            const showCompleted = ref(false);
+            
+            // 彈窗控制
             const showAddTripModal = ref(false);
+            const showEditTripModal = ref(false);
+            const showShoppingModal = ref(false);
+            const showExpenseModal = ref(false);
             const showAddHotelModal = ref(false);
             const showAddItineraryModal = ref(false);
-            const showEditTripModal = ref(false);
             const showEditItineraryModal = ref(false);
+            
+            // 編輯中的暫存狀態
             const editingItineraryItem = ref(null);
             const isHotelEditMode = ref(false);
 
-            const travelTrips = ref(JSON.parse(localStorage.getItem('travel_dashboard_trips')) || []);
-
+            // 表單綁定數據
             const newTripName = ref('');
             const newTripStartDate = ref('');
             const newTripEndDate = ref('');
+            
+            const newShoppingItem = ref({ name: '', price: 0, isBought: false });
+            const newExpense = ref({ date: '', category: 'food', name: '', amount: 0, paymentMethod: '現金 (JPY)' });
+            const newHotel = ref({ name: '', date: '', address: '' });
+            const newItinerary = ref({ 
+                category: 'spot', 
+                time: '', 
+                name: '', 
+                address: '', 
+                notes: '',
+                imageURL: '',      // 新增：背景圖 URL
+                imageOpacity: 30    // 新增：圖片透明度預設值
+            });
 
-            const newHotel = reactive({ name: '', date: '', address: '' });
-            const newItinerary = reactive({ category: 'attraction', time: '', name: '', address: '', imageURL: '', imageOpacity: 30, notes: '' });
-            const editingTripData = reactive({ id: null, name: '', startDate: '', endDate: '', type: '未分類' });
+            const editingTripData = ref({ id: null, name: '', startDate: '', endDate: '', type: '未分類' });
 
-            watch(travelTrips, (newVal) => {
-                localStorage.setItem('travel_dashboard_trips', JSON.stringify(newVal));
-            }, { deep: true });
+            const tripTabs = [
+                { id: 'itinerary', label: '行程計畫', icon: 'fas fa-map-marked-alt' },
+                { id: 'info', label: '住宿/匯率', icon: 'fas fa-info-circle' },
+                { id: 'shopping', label: '購物清單', icon: 'fas fa-shopping-cart' },
+                { id: 'expenses', label: '花費紀錄', icon: 'fas fa-wallet' }
+            ];
 
+            // --- 計算屬性 ---
             const sortedTrips = computed(() => {
-                return [...travelTrips.value].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+                return [...trips.value].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
             });
 
             const upcomingTrips = computed(() => {
-                const today = new Date().toISOString().split('T')[0];
-                return sortedTrips.value.filter(t => t.endDate >= today);
+                return sortedTrips.value.filter(t => t.status !== '已完成');
             });
 
             const completedTrips = computed(() => {
-                const today = new Date().toISOString().split('T')[0];
-                return sortedTrips.value.filter(t => t.endDate < today);
+                return sortedTrips.value.filter(t => t.status === '已完成');
             });
 
             const sortedCurrentItinerary = computed(() => {
                 if (!selectedTrip.value) return [];
-                const date = selectedTrip.value.data.dates[selectedTrip.value.data.selectedDateIndex];
-                return selectedTrip.value.data.itinerary
+                const currentDate = selectedTrip.value.data.dates[selectedTrip.value.data.selectedDateIndex];
+                
+                // 找出當天的行程並附加原始索引(用於刪除)
+                const dayItinerary = selectedTrip.value.data.itinerary
                     .map((item, index) => ({ ...item, originalIndex: index }))
-                    .filter(item => item.date === date)
-                    .sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+                    .filter(item => item.date === currentDate);
+                
+                // 按時間排序
+                return dayItinerary.sort((a, b) => {
+                    if (!a.time) return 1;
+                    if (!b.time) return -1;
+                    return a.time.localeCompare(b.time);
+                });
             });
 
-            const getDatesArray = (start, end) => {
-                const arr = [];
-                let dt = new Date(start);
-                const endDt = new Date(end);
-                while (dt <= endDt) {
-                    arr.push(new Date(dt).toISOString().split('T')[0]);
-                    dt.setDate(dt.getDate() + 1);
-                }
-                return arr;
+            // --- 監聽器 ---
+            watch(trips, (newVal) => {
+                localStorage.setItem('travel_trips', JSON.stringify(newVal));
+            }, { deep: true });
+
+            // --- 方法 ---
+
+            // 路由/導航方法
+            const goToTrip = (trip) => {
+                selectedTrip.value = trip;
+                currentView.value = 'tripDetail';
+                // 預設選擇今日日期 (若不在範圍內則選第一天)
+                const todayStr = new Date().toISOString().split('T')[0];
+                const todayIdx = trip.data.dates.indexOf(todayStr);
+                selectedTrip.value.data.selectedDateIndex = todayIdx !== -1 ? todayIdx : 0;
             };
 
+            const goHome = () => {
+                currentView.value = 'home';
+                selectedTrip.value = null;
+            };
+
+            // 旅遊計畫管理
             const addNewTrip = () => {
-                if (!newTripName.value || !newTripStartDate.value || !newTripEndDate.value) return alert('請填寫完整資訊');
-                const id = Date.now();
-                travelTrips.value.push({
-                    id, name: newTripName.value, startDate: newTripStartDate.value, endDate: newTripEndDate.value,
-                    status: '計畫中', type: '未分類',
-                    data: { currentTab: 'itinerary', selectedDateIndex: 0, dates: getDatesArray(newTripStartDate.value, newTripEndDate.value), itinerary: [], hotels: [], shoppingList: [], expenses: [], currencyInput: 0, totalExpensesJPY: 0, totalExpensesTWD: 0 }
-                });
+                if (!newTripName.value || !newTripStartDate.value || !newTripEndDate.value) {
+                    alert('請填寫完整資訊');
+                    return;
+                }
+
+                const dates = [];
+                let curr = new Date(newTripStartDate.value);
+                const end = new Date(newTripEndDate.value);
+                while (curr <= end) {
+                    dates.push(curr.toISOString().split('T')[0]);
+                    curr.setDate(curr.getDate() + 1);
+                }
+
+                const newTrip = {
+                    id: Date.now(),
+                    name: newTripName.value,
+                    startDate: newTripStartDate.value,
+                    endDate: newTripEndDate.value,
+                    type: '未分類',
+                    status: '即將開始',
+                    data: {
+                        currentTab: 'itinerary',
+                        selectedDateIndex: 0,
+                        dates: dates,
+                        itinerary: [],
+                        hotels: [],
+                        shoppingList: [],
+                        expenses: [],
+                        currencyInput: 0,
+                        totalExpensesJPY: 0,
+                        totalExpensesTWD: 0
+                    }
+                };
+
+                trips.value.push(newTrip);
                 showAddTripModal.value = false;
-                newTripName.value = ''; newTripStartDate.value = ''; newTripEndDate.value = '';
+                // 重置表單
+                newTripName.value = '';
+                newTripStartDate.value = '';
+                newTripEndDate.value = '';
             };
 
-            const goHome = () => { currentView.value = 'home'; selectedTrip.value = null; };
-            const goToTrip = (trip) => { selectedTrip.value = trip; currentView.value = 'tripDetail'; };
+            const openEditTripModal = () => {
+                editingTripData.value = { 
+                    id: selectedTrip.value.id,
+                    name: selectedTrip.value.name,
+                    startDate: selectedTrip.value.startDate,
+                    endDate: selectedTrip.value.endDate,
+                    type: selectedTrip.value.type
+                };
+                showEditTripModal.value = true;
+            };
+
+            const saveEditedTrip = () => {
+                const index = trips.value.findIndex(t => t.id === editingTripData.value.id);
+                if (index !== -1) {
+                    trips.value[index].name = editingTripData.value.name;
+                    trips.value[index].type = editingTripData.value.type;
+                    
+                    // 注意：這裡簡化處理，日期修改不會重新計算 dates 陣列
+                    // 實際應用中若日期範圍變動，需處理行程數據的遷移
+                    trips.value[index].startDate = editingTripData.value.startDate;
+                    trips.value[index].endDate = editingTripData.value.endDate;
+                }
+                showEditTripModal.value = false;
+            };
 
             const confirmRemoveTrip = (id, name) => {
-                if (confirm(`確定要刪除「${name}」的所有資料嗎？`)) {
-                    travelTrips.value = travelTrips.value.filter(t => t.id !== id);
+                if (confirm(`確定要刪除「${name}」的所有旅遊計畫嗎？此動作無法復原。`)) {
+                    trips.value = trips.value.filter(t => t.id !== id);
                 }
             };
 
-            const addHotel = () => {
-                if (!newHotel.name) return;
-                selectedTrip.value.data.hotels.push({ ...newHotel });
-                newHotel.name = ''; newHotel.date = ''; newHotel.address = '';
-                showAddHotelModal.value = false;
-            };
-
-            const removeHotel = (index) => {
-                selectedTrip.value.data.hotels.splice(index, 1);
-            };
-
+            // 行程計畫管理
             const addItineraryItem = () => {
-                if (!newItinerary.name || !newItinerary.address) return alert('請填寫名稱與地址');
-                const date = selectedTrip.value.data.dates[selectedTrip.value.data.selectedDateIndex];
-                selectedTrip.value.data.itinerary.push({ ...newItinerary, date });
-                Object.assign(newItinerary, { category: 'attraction', time: '', name: '', address: '', imageURL: '', imageOpacity: 30, notes: '' });
+                if (!newItinerary.value.name || !newItinerary.value.address) {
+                    alert('請輸入行程名稱與地址');
+                    return;
+                }
+                
+                const currentDate = selectedTrip.value.data.dates[selectedTrip.value.data.selectedDateIndex];
+                selectedTrip.value.data.itinerary.push({
+                    ...newItinerary.value,
+                    date: currentDate
+                });
+
+                // 重置表單
+                newItinerary.value = { 
+                    category: 'spot', 
+                    time: '', 
+                    name: '', 
+                    address: '', 
+                    notes: '',
+                    imageURL: '',
+                    imageOpacity: 30
+                };
                 showAddItineraryModal.value = false;
             };
 
@@ -528,40 +958,136 @@
             };
 
             const saveEditedItineraryItem = () => {
-                const idx = editingItineraryItem.value.originalIndex;
-                selectedTrip.value.data.itinerary[idx] = { ...editingItineraryItem.value };
-                showEditItineraryModal.value = false;
-            };
-
-            const confirmRemoveItineraryItem = (idx, name) => {
-                if (confirm(`確定要刪除「${name}」嗎？`)) {
-                    selectedTrip.value.data.itinerary.splice(idx, 1);
+                if (editingItineraryItem.value) {
+                    const idx = editingItineraryItem.value.originalIndex;
+                    // 更新回原始陣列
+                    selectedTrip.value.data.itinerary[idx] = { ...editingItineraryItem.value };
+                    showEditItineraryModal.value = false;
+                    editingItineraryItem.value = null;
                 }
             };
 
-            const openMap = (addr) => {
-                if (!addr) return;
-                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
+            const confirmRemoveItineraryItem = (originalIndex, name) => {
+                if (confirm(`確定要移除「${name}」這個行程嗎？`)) {
+                    selectedTrip.value.data.itinerary.splice(originalIndex, 1);
+                }
+            };
+
+            // 住宿管理
+            const addHotel = () => {
+                if (!newHotel.value.name) return;
+                selectedTrip.value.data.hotels.push({ ...newHotel.value });
+                newHotel.value = { name: '', date: '', address: '' };
+                showAddHotelModal.value = false;
+            };
+
+            const removeHotel = (index) => {
+                selectedTrip.value.data.hotels.splice(index, 1);
+            };
+
+            // 購物管理
+            const addShoppingItem = () => {
+                if (!newShoppingItem.value.name) return;
+                selectedTrip.value.data.shoppingList.push({ ...newShoppingItem.value });
+                newShoppingItem.value = { name: '', price: 0, isBought: false };
+                showShoppingModal.value = false;
+            };
+
+            const removeShoppingItem = (index) => {
+                selectedTrip.value.data.shoppingList.splice(index, 1);
+            };
+
+            // 記帳管理
+            const addExpense = () => {
+                if (!newExpense.value.name || !newExpense.value.amount) return;
+                selectedTrip.value.data.expenses.push({ ...newExpense.value });
+                
+                // 更新總額
+                selectedTrip.value.data.totalExpensesJPY += newExpense.value.amount;
+                selectedTrip.value.data.totalExpensesTWD = selectedTrip.value.data.totalExpensesJPY * 0.215;
+                
+                newExpense.value = { date: selectedTrip.value.data.dates[0], category: 'food', name: '', amount: 0, paymentMethod: '現金 (JPY)' };
+                showExpenseModal.value = false;
+            };
+
+            // 輔助函式
+            const openMap = (address) => {
+                if (!address) return;
+                const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+                window.open(url, '_blank');
+            };
+
+            const formatNumber = (num) => {
+                return new Intl.NumberFormat('zh-TW', { maximumFractionDigits: 0 }).format(num);
+            };
+
+            const getCategoryColorClass = (cat) => EXPENSE_CATEGORIES[cat]?.colorClass || 'border-gray-400';
+            const getCategoryIcon = (cat) => EXPENSE_CATEGORIES[cat]?.icon || 'fas fa-question';
+            const getCategoryLabel = (cat) => EXPENSE_CATEGORIES[cat]?.label || '未分類';
+            
+            const getItineraryIcon = (cat) => ITINERARY_CATEGORIES[cat]?.icon || 'fas fa-map-pin';
+            const getItineraryColor = (cat) => ITINERARY_CATEGORIES[cat]?.color || '#78909C';
+
+            const getDayOfWeek = (dateStr) => {
+                const days = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+                return days[new Date(dateStr).getDay()];
+            };
+
+            const getMonthAbbreviation = (dateStr) => {
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return months[new Date(dateStr).getMonth()];
             };
 
             return {
-                currentView, showCompleted, travelTrips, selectedTrip,
-                showAddTripModal, showAddHotelModal, showAddItineraryModal, showEditTripModal, showEditItineraryModal,
-                newTripName, newTripStartDate, newTripEndDate, newHotel, newItinerary, editingTripData, editingItineraryItem, isHotelEditMode,
-                upcomingTrips, completedTrips, sortedTrips, sortedCurrentItinerary,
-                ITINERARY_CATEGORIES,
-                goHome, goToTrip, addNewTrip, confirmRemoveTrip, addHotel, removeHotel, addItineraryItem, openEditItineraryModal, saveEditedItineraryItem, confirmRemoveItineraryItem, openMap,
-                getMonthAbbreviation: (d) => (new Date(d).getMonth() + 1) + '月',
-                getDayOfWeek: (d) => ['日','一','二','三','四','五','六'][new Date(d).getDay()],
-                getItineraryIcon: (c) => ITINERARY_CATEGORIES[c]?.icon || 'fas fa-star',
-                getItineraryColor: (c) => ITINERARY_CATEGORIES[c]?.color || '#757575',
-                formatNumber: (n) => Number(n || 0).toLocaleString(),
-                tripTabs: [
-                    { id: 'itinerary', label: '行程', icon: 'fas fa-map-pin' },
-                    { id: 'info', label: '資訊', icon: 'fas fa-info-circle' },
-                    { id: 'shopping', label: '購物', icon: 'fas fa-shopping-basket' },
-                    { id: 'expenses', label: '花費', icon: 'fas fa-piggy-bank' }
-                ]
+                // 狀態
+                currentView, trips, selectedTrip, showCompleted,
+                ITINERARY_CATEGORIES, EXPENSE_CATEGORIES,
+                showAddTripModal, 
+                showShoppingModal, 
+                showExpenseModal, 
+                showAddHotelModal,
+                showAddItineraryModal, 
+                showEditTripModal,
+                showEditItineraryModal, 
+                editingItineraryItem, 
+                isHotelEditMode, 
+                newTripName,
+                newTripStartDate,
+                newTripEndDate,
+                newShoppingItem,
+                newExpense,
+                newHotel, 
+                newItinerary, 
+                editingTripData,
+                tripTabs,
+                // 方法
+                goToTrip,
+                goHome,
+                confirmRemoveTrip, 
+                addNewTrip,
+                openEditTripModal,
+                saveEditedTrip,
+                addShoppingItem,
+                removeShoppingItem,
+                addExpense,
+                addHotel, 
+                removeHotel, 
+                addItineraryItem, 
+                openEditItineraryModal, 
+                saveEditedItineraryItem, 
+                confirmRemoveItineraryItem, 
+                // 計算屬性
+                sortedCurrentItinerary, 
+                // 輔助函式
+                openMap,
+                formatNumber,
+                getCategoryColorClass,
+                getCategoryIcon,
+                getCategoryLabel,
+                getDayOfWeek,
+                getMonthAbbreviation,
+                getItineraryIcon, 
+                getItineraryColor,
             };
         }
     }).mount('#app');
