@@ -410,7 +410,7 @@
 </div>
 
 <script>
-    const { createApp, ref, computed, watch } = Vue;
+    const { createApp, ref, computed, watch, reactive } = Vue;
 
     const ITINERARY_CATEGORIES = {
         attraction: { label: '景點', icon: 'fas fa-map-marker-alt', color: '#0288D1' },
@@ -426,8 +426,23 @@
             const currentView = ref('home');
             const showCompleted = ref(false);
             const selectedTrip = ref(null);
-            
+            const showAddTripModal = ref(false);
+            const showAddHotelModal = ref(false);
+            const showAddItineraryModal = ref(false);
+            const showEditTripModal = ref(false);
+            const showEditItineraryModal = ref(false);
+            const editingItineraryItem = ref(null);
+            const isHotelEditMode = ref(false);
+
             const travelTrips = ref(JSON.parse(localStorage.getItem('travel_dashboard_trips')) || []);
+
+            const newTripName = ref('');
+            const newTripStartDate = ref('');
+            const newTripEndDate = ref('');
+
+            const newHotel = reactive({ name: '', date: '', address: '' });
+            const newItinerary = reactive({ category: 'attraction', time: '', name: '', address: '', imageURL: '', imageOpacity: 30, notes: '' });
+            const editingTripData = reactive({ id: null, name: '', startDate: '', endDate: '', type: '未分類' });
 
             watch(travelTrips, (newVal) => {
                 localStorage.setItem('travel_dashboard_trips', JSON.stringify(newVal));
@@ -456,14 +471,86 @@
                     .sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
             });
 
+            const getDatesArray = (start, end) => {
+                const arr = [];
+                let dt = new Date(start);
+                const endDt = new Date(end);
+                while (dt <= endDt) {
+                    arr.push(new Date(dt).toISOString().split('T')[0]);
+                    dt.setDate(dt.getDate() + 1);
+                }
+                return arr;
+            };
+
+            const addNewTrip = () => {
+                if (!newTripName.value || !newTripStartDate.value || !newTripEndDate.value) return alert('請填寫完整資訊');
+                const id = Date.now();
+                travelTrips.value.push({
+                    id, name: newTripName.value, startDate: newTripStartDate.value, endDate: newTripEndDate.value,
+                    status: '計畫中', type: '未分類',
+                    data: { currentTab: 'itinerary', selectedDateIndex: 0, dates: getDatesArray(newTripStartDate.value, newTripEndDate.value), itinerary: [], hotels: [], shoppingList: [], expenses: [], currencyInput: 0, totalExpensesJPY: 0, totalExpensesTWD: 0 }
+                });
+                showAddTripModal.value = false;
+                newTripName.value = ''; newTripStartDate.value = ''; newTripEndDate.value = '';
+            };
+
             const goHome = () => { currentView.value = 'home'; selectedTrip.value = null; };
             const goToTrip = (trip) => { selectedTrip.value = trip; currentView.value = 'tripDetail'; };
 
+            const confirmRemoveTrip = (id, name) => {
+                if (confirm(`確定要刪除「${name}」的所有資料嗎？`)) {
+                    travelTrips.value = travelTrips.value.filter(t => t.id !== id);
+                }
+            };
+
+            const addHotel = () => {
+                if (!newHotel.name) return;
+                selectedTrip.value.data.hotels.push({ ...newHotel });
+                newHotel.name = ''; newHotel.date = ''; newHotel.address = '';
+                showAddHotelModal.value = false;
+            };
+
+            const removeHotel = (index) => {
+                selectedTrip.value.data.hotels.splice(index, 1);
+            };
+
+            const addItineraryItem = () => {
+                if (!newItinerary.name || !newItinerary.address) return alert('請填寫名稱與地址');
+                const date = selectedTrip.value.data.dates[selectedTrip.value.data.selectedDateIndex];
+                selectedTrip.value.data.itinerary.push({ ...newItinerary, date });
+                Object.assign(newItinerary, { category: 'attraction', time: '', name: '', address: '', imageURL: '', imageOpacity: 30, notes: '' });
+                showAddItineraryModal.value = false;
+            };
+
+            const openEditItineraryModal = (item) => {
+                editingItineraryItem.value = { ...item };
+                showEditItineraryModal.value = true;
+            };
+
+            const saveEditedItineraryItem = () => {
+                const idx = editingItineraryItem.value.originalIndex;
+                selectedTrip.value.data.itinerary[idx] = { ...editingItineraryItem.value };
+                showEditItineraryModal.value = false;
+            };
+
+            const confirmRemoveItineraryItem = (idx, name) => {
+                if (confirm(`確定要刪除「${name}」嗎？`)) {
+                    selectedTrip.value.data.itinerary.splice(idx, 1);
+                }
+            };
+
+            const openMap = (addr) => {
+                if (!addr) return;
+                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
+            };
+
             return {
                 currentView, showCompleted, travelTrips, selectedTrip,
+                showAddTripModal, showAddHotelModal, showAddItineraryModal, showEditTripModal, showEditItineraryModal,
+                newTripName, newTripStartDate, newTripEndDate, newHotel, newItinerary, editingTripData, editingItineraryItem, isHotelEditMode,
                 upcomingTrips, completedTrips, sortedTrips, sortedCurrentItinerary,
                 ITINERARY_CATEGORIES,
-                goHome, goToTrip,
+                goHome, goToTrip, addNewTrip, confirmRemoveTrip, addHotel, removeHotel, addItineraryItem, openEditItineraryModal, saveEditedItineraryItem, confirmRemoveItineraryItem, openMap,
                 getMonthAbbreviation: (d) => (new Date(d).getMonth() + 1) + '月',
                 getDayOfWeek: (d) => ['日','一','二','三','四','五','六'][new Date(d).getDay()],
                 getItineraryIcon: (c) => ITINERARY_CATEGORIES[c]?.icon || 'fas fa-star',
