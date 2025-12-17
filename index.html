@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅程隨身記 V011.4 完整功能版</title>
+    <title>旅程隨身記 V011.4 完整修正版</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -199,7 +199,6 @@
             <div class="space-y-4">
                 <div><label class="field-label">Trip Name / 旅程名稱</label><input v-model="activeTripData.name" placeholder="例如：東京五日遊" class="uniform-input"></div>
                 <div><label class="field-label">Destination / 目的地</label><input v-model="activeTripData.destination" placeholder="例如：日本東京、京都" class="uniform-input"></div>
-                
                 <div><label class="field-label">Category / 類別</label><select v-model="activeTripData.category" class="uniform-input"><option value="國內旅遊">國內旅遊</option><option value="國外旅遊">國外旅遊</option><option value="露營">露營</option></select></div>
                 <div><label class="field-label">Theme Color / 主題色</label>
                     <div class="color-grid hide-scrollbar"><div v-for="c in morandiColors" :key="c" @click="activeTripData.themeColor = c" class="color-dot" :class="{active: activeTripData.themeColor === c}" :style="{backgroundColor: c}"></div></div>
@@ -258,19 +257,7 @@
             const goToTrip = (t) => { selectedTrip.value = t; currentView.value = 'tripDetail'; };
             const goHome = () => currentView.value = 'home';
             
-            // 初始化 activeTripData 增加 destination 欄位
-            const openAddTripModal = () => { 
-                activeTripData.value = { 
-                    name: '', 
-                    destination: '', // 新增欄位
-                    themeColor: '#4C7B7B', 
-                    startDate: new Date().toISOString().split('T')[0], 
-                    endDate: new Date().toISOString().split('T')[0], 
-                    category: '國內旅遊' 
-                }; 
-                showAddTripModal.value = true; 
-            };
-            
+            const openAddTripModal = () => { activeTripData.value = { name: '', destination: '', themeColor: '#4C7B7B', startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0], category: '國內旅遊' }; showAddTripModal.value = true; };
             const openEditTripModal = () => { activeTripData.value = { ...selectedTrip.value }; showEditTripModal.value = true; };
             const closeTripModal = () => { showAddTripModal.value = false; showEditTripModal.value = false; };
             const saveTrip = () => {
@@ -289,7 +276,13 @@
             const addExpense = () => { if(newExpense.value.name && newExpense.value.amount) selectedTrip.value.data.expenses.push({ ...newExpense.value }); newExpense.value = { name: '', amount: null }; };
             const addHotel = () => { if(newHotel.value.name) selectedTrip.value.data.hotels.push({ ...newHotel.value }); newHotel.value = { name: '', checkIn: '', checkOut: '' }; };
             const addShoppingItem = () => { if(newShoppingItem.value) selectedTrip.value.data.shopping.push({ name: newShoppingItem.value, done: false }); newShoppingItem.value = ''; };
-            const openSmartMap = (item) => window.open(`http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(item.address || item.name)}`, '_blank');
+            
+            // 修正後的地圖函式
+            const openSmartMap = (item) => {
+                const query = encodeURIComponent(item.address || item.name);
+                window.open(`https://www.google.com/maps?q=${query}`, '_blank');
+            };
+
             const getAdaptiveColor = (type) => ({ spot: currentThemeColor.value, food: '#E2B1B1', transport: '#8C9A9E', flight: '#6B7A8F', shopping: '#D1B28C' }[type] || currentThemeColor.value);
             const getItineraryIcon = (c) => ({ spot: 'fas fa-map-pin', food: 'fas fa-utensils', transport: 'fas fa-car', flight: 'fas fa-plane', shopping: 'fas fa-shopping-bag' }[c] || 'fas fa-star');
             const sortedTrips = computed(() => {
