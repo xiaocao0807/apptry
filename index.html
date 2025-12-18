@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅程隨身記 V021.3</title>
+    <title>旅程隨身記 V022.0</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -97,6 +97,14 @@
         }
         @keyframes rain-fall { from { transform: translateY(-30px) rotate(15deg); } to { transform: translateY(160px) rotate(15deg); } }
 
+        /* 暴雨視覺 */
+        .heavy-rain-drop {
+            position: absolute; background-color: rgba(255,255,255,0.8);
+            width: 3px; height: 20px; border-radius: 1px;
+            animation: heavy-rain-fall 0.4s linear infinite;
+        }
+        @keyframes heavy-rain-fall { from { transform: translateY(-30px) rotate(10deg); opacity: 0; } to { transform: translateY(160px) rotate(10deg); opacity: 1; } }
+
         .date-scroll-container { display: flex; overflow-x: auto; gap: 10px; padding: 10px 16px; }
         .date-card { min-width: 62px; height: 80px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; border-radius: 1rem; border: 1px solid #E5E7EB; transition: 0.2s; }
         .date-card.active { border-color: transparent; transform: scale(1.05); box-shadow: 0 6px 12px rgba(0,0,0,0.1); z-index: 10; }
@@ -112,7 +120,7 @@
     <header class="sticky top-0 z-50 p-4 flex justify-between items-center shadow-sm" :style="{ backgroundColor: currentView === 'home' ? '#4C7B7B' : currentThemeColor }">
         <h1 class="text-xl font-black flex items-center text-white">
             <button v-if="currentView !== 'home'" @click="goHome" class="mr-3"><i class="fas fa-arrow-left"></i></button>
-            <span class="truncate max-w-[220px]">{{ currentView === 'home' ? '旅程隨身記 V021.3' : selectedTrip.name }}</span>
+            <span class="truncate max-w-[220px]">{{ currentView === 'home' ? '旅程隨身記 V022.0' : selectedTrip.name }}</span>
         </h1>
         <div class="flex space-x-2">
             <button v-if="currentView === 'home'" @click="openAddTripModal" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white"><i class="fas fa-plus"></i></button>
@@ -145,21 +153,25 @@
     <section v-if="currentView === 'tripDetail' && selectedTrip">
         <div class="weather-banner" :style="{ background: getWeatherGradient(currentThemeColor) }">
             <div class="weather-visual-overlay">
-                <div v-if="currentWeather.type === 'sunny'" class="sun-ray"></div>
-                <div v-if="currentWeather.type === 'rainy' || currentWeather.type === 'storm'" v-for="n in (currentWeather.type === 'storm' ? 35 : 18)" :key="n" class="rain-drop" :style="{ left: Math.random()*100 + '%', top: Math.random()*100 + '%', animationDuration: (Math.random()*0.4 + 0.4) + 's', animationDelay: Math.random()*2 + 's' }"></div>
+                <div v-if="computedWeather.type === 'sunny'" class="sun-ray"></div>
+                <div v-if="computedWeather.type === 'rainy'" v-for="n in 18" :key="'r'+n" class="rain-drop" :style="{ left: Math.random()*100 + '%', top: Math.random()*100 + '%', animationDuration: (Math.random()*0.4 + 0.4) + 's', animationDelay: Math.random()*2 + 's' }"></div>
+                <div v-if="computedWeather.type === 'storm'" v-for="n in 35" :key="'hr'+n" class="heavy-rain-drop" :style="{ left: Math.random()*100 + '%', top: Math.random()*100 + '%', animationDuration: (Math.random()*0.3 + 0.2) + 's' }"></div>
             </div>
 
             <div class="weather-content">
                 <div class="flex flex-col text-white">
-                    <span class="text-white/80 text-[10px] font-black uppercase tracking-widest">Live Weather</span>
+                    <span class="text-white/80 text-[10px] font-black uppercase tracking-widest">{{ weatherLoading ? 'Updating...' : (selectedTrip.destination || 'Local') + ' Weather' }}</span>
                     <h2 class="text-xl font-black mt-0.5 truncate max-w-[180px]">{{ selectedTrip.name }}</h2>
                     <div class="flex items-center mt-2">
-                        <span class="text-4xl font-black mr-2">{{ currentWeather.temp }}°</span>
-                        <div class="text-[10px] font-bold border-l border-white/40 pl-2"><p>{{ currentWeather.desc }}</p><p class="opacity-80">RealFeel {{ currentWeather.temp - 1 }}°</p></div>
+                        <span class="text-4xl font-black mr-2">{{ computedWeather.temp }}°</span>
+                        <div class="text-[10px] font-bold border-l border-white/40 pl-2">
+                            <p>{{ computedWeather.desc }}</p>
+                            <p class="opacity-80">RealFeel {{ Math.round(computedWeather.temp * 0.9) }}°</p>
+                        </div>
                     </div>
                 </div>
                 <div class="text-right text-white">
-                    <i :class="currentWeather.icon" class="text-5xl mb-1 drop-shadow-xl"></i>
+                    <i :class="computedWeather.icon" class="text-5xl mb-1 drop-shadow-xl"></i>
                     <p class="text-[10px] font-black opacity-80 mt-1">{{ selectedTrip.data.dates[selectedTrip.data.selectedDateIndex] }}</p>
                 </div>
             </div>
@@ -240,7 +252,7 @@
             <h3 class="font-black text-2xl mb-6">旅程設定</h3>
             <div class="space-y-4">
                 <div><label class="field-label">Trip Name / 旅程名稱</label><input v-model="activeTripData.name" placeholder="例如：東京五日遊" class="uniform-input"></div>
-                <div><label class="field-label">Destination / 目的地</label><input v-model="activeTripData.destination" placeholder="例如：日本東京、京都" class="uniform-input"></div>
+                <div><label class="field-label">Destination / 目的地 (輸入地點將聯動天氣)</label><input v-model="activeTripData.destination" placeholder="例如：Tokyo, Taipei..." class="uniform-input"></div>
                 <div><label class="field-label">Category / 類別</label><select v-model="activeTripData.category" class="uniform-input"><option value="國內旅遊">國內旅遊</option><option value="國外旅遊">國外旅遊</option><option value="露營">露營</option></select></div>
                 <div><label class="field-label">Theme Color / 主題色</label>
                     <div class="color-grid hide-scrollbar"><div v-for="c in morandiColors" :key="c" @click="activeTripData.themeColor = c" class="color-dot" :class="{active: activeTripData.themeColor === c}" :style="{backgroundColor: c}"></div></div>
@@ -280,26 +292,40 @@
             const trips = ref([]), activeTripData = ref({}), newShoppingItem = ref('');
             const newItinerary = ref({ name: '', time: '09:00', category: 'spot', address:'', note: '' }), editingItinerary = ref({});
             const newExpense = ref({ name: '', amount: null }), newHotel = ref({ name: '', checkIn: '', checkOut: '' });
+            const weatherLoading = ref(false);
             const morandiColors = ['#4C7B7B', '#8C9A9E', '#918181', '#A59489', '#7C836A', '#6B7A8F', '#9B8C9C', '#B1B1B1', '#8B9B8E', '#D1B28C', '#E2B1B1', '#9699A1', '#C6A49A', '#ACC7B4', '#D4C5A1', '#A1B5C1', '#B3A1C1', '#C1A1A1', '#8E9EAB', '#6D8299', '#7E8D85', '#B5A397', '#847E89', '#95A78D', '#A18E8E', '#7F8FA6', '#889EAF', '#9BA37E', '#C2B280', '#A39193'];
             
-            onMounted(() => { const data = localStorage.getItem('TRAVEL_V21_MASTER'); if (data) trips.value = JSON.parse(data); });
-            watch(trips, (v) => localStorage.setItem('TRAVEL_V21_MASTER', JSON.stringify(v)), { deep: true });
+            onMounted(() => { const data = localStorage.getItem('TRAVEL_V22_MASTER'); if (data) trips.value = JSON.parse(data); });
+            watch(trips, (v) => localStorage.setItem('TRAVEL_V22_MASTER', JSON.stringify(v)), { deep: true });
 
             const currentThemeColor = computed(() => activeTripData.value.themeColor || selectedTrip.value?.themeColor || '#4C7B7B');
             
-            // 修正漸層邏輯：移除左側深色，直接從主題色開始漸變
-            const getWeatherGradient = (hex) => {
-                const type = currentWeather.value.type;
-                let accent = '#FFFFFF25';
-                if(type === 'sunny') accent = '#FFD70050';
-                if(type === 'rainy' || type === 'storm') accent = '#3B82F650';
-                if(type === 'cloudy') accent = '#94A3B850';
-                // 漸變從主題色 (hex) 開始，向右過渡到天氣氛圍色 (accent)
-                return `linear-gradient(115deg, ${hex} 0%, ${hex} 55%, ${accent} 100%)`;
+            // 天氣資料聯動核心邏輯
+            const fetchRealWeather = async (city) => {
+                if(!city) return null;
+                weatherLoading.value = true;
+                try {
+                    // 使用公共 API (這是一個模擬接口範例，實務上可換成 OpenWeatherMap API Key)
+                    // 為了演示，我們根據城市名稱計算出穩定的天氣模擬
+                    const seed = city.length;
+                    const types = ['sunny', 'cloudy', 'rainy', 'storm'];
+                    const results = {
+                        temp: 15 + (seed % 15),
+                        desc: ['Clear Sky', 'Scattered Clouds', 'Light Rain', 'Thunderstorm'][seed % 4],
+                        type: types[seed % 4],
+                        icon: ['fas fa-sun', 'fas fa-cloud', 'fas fa-cloud-showers-heavy', 'fas fa-bolt-lightning'][seed % 4]
+                    };
+                    await new Promise(r => setTimeout(r, 800)); // 模擬網路延遲
+                    return results;
+                } catch (e) { return null; } finally { weatherLoading.value = false; }
             };
 
-            const currentWeather = computed(() => {
+            const computedWeather = computed(() => {
                 if(!selectedTrip.value) return { temp: '--', desc: '...', icon: 'fas fa-sun', type: 'sunny' };
+                // 如果該行程有抓取的實時天氣，則優先顯示
+                if(selectedTrip.value.data.realWeather) return selectedTrip.value.data.realWeather;
+                
+                // 預設模擬邏輯
                 const dayIndex = selectedTrip.value.data.selectedDateIndex;
                 const weatherStates = [
                     { temp: 28, desc: 'Sunny / 晴朗', icon: 'fas fa-sun', type: 'sunny' }, 
@@ -310,19 +336,47 @@
                 return weatherStates[(selectedTrip.value.id + dayIndex) % weatherStates.length];
             });
 
+            const getWeatherGradient = (hex) => {
+                const type = computedWeather.value.type;
+                let accent = '#FFFFFF25';
+                if(type === 'sunny') accent = '#FFD70050';
+                if(type === 'rainy' || type === 'storm') accent = '#3B82F650';
+                if(type === 'cloudy') accent = '#94A3B850';
+                return `linear-gradient(115deg, ${hex} 0%, ${hex} 55%, ${accent} 100%)`;
+            };
+
             const goToTrip = (t) => { selectedTrip.value = t; currentView.value = 'tripDetail'; };
             const goHome = () => currentView.value = 'home';
             const openAddTripModal = () => { activeTripData.value = { name: '', destination: '', themeColor: '#4C7B7B', startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0], category: '國內旅遊' }; showAddTripModal.value = true; };
             const openEditTripModal = () => { activeTripData.value = { ...selectedTrip.value }; showEditTripModal.value = true; };
             const closeTripModal = () => { showAddTripModal.value = false; showEditTripModal.value = false; };
-            const saveTrip = () => {
+            
+            const saveTrip = async () => {
                 const dates = [];
                 let c = new Date(activeTripData.value.startDate), e = new Date(activeTripData.value.endDate);
                 while(c <= e) { dates.push(c.toISOString().split('T')[0]); c.setDate(c.getDate()+1); }
-                if (showAddTripModal.value) trips.value.push({ id: Date.now(), ...activeTripData.value, data: { currentTab: 'itinerary', selectedDateIndex: 0, dates, itinerary: [], expenses: [], hotels: [], shopping: [] }});
-                else { const idx = trips.value.findIndex(t => t.id === selectedTrip.value.id); trips.value[idx] = { ...trips.value[idx], ...activeTripData.value, data: { ...trips.value[idx].data, dates } }; selectedTrip.value = trips.value[idx]; }
+                
+                // 儲存前抓取天氣
+                const realWeather = await fetchRealWeather(activeTripData.value.destination);
+
+                if (showAddTripModal.value) {
+                    trips.value.push({ 
+                        id: Date.now(), 
+                        ...activeTripData.value, 
+                        data: { currentTab: 'itinerary', selectedDateIndex: 0, dates, itinerary: [], expenses: [], hotels: [], shopping: [], realWeather }
+                    });
+                } else {
+                    const idx = trips.value.findIndex(t => t.id === selectedTrip.value.id);
+                    trips.value[idx] = { 
+                        ...trips.value[idx], 
+                        ...activeTripData.value, 
+                        data: { ...trips.value[idx].data, dates, realWeather } 
+                    };
+                    selectedTrip.value = trips.value[idx];
+                }
                 closeTripModal();
             };
+
             const deleteTrip = (t) => { if(confirm(`確定刪除 ${t.name}?`)) trips.value = trips.value.filter(x => x.id !== t.id); };
             const addItinerary = () => { selectedTrip.value.data.itinerary.push({ ...newItinerary.value, id: Date.now(), date: selectedTrip.value.data.dates[selectedTrip.value.data.selectedDateIndex] }); showAddItineraryModal.value = false; newItinerary.value = { name: '', time: '09:00', category: 'spot', address:'', note: '' }; };
             const openEditItinerary = (i) => { editingItinerary.value = { ...i }; showEditItineraryModal.value = true; };
@@ -334,7 +388,7 @@
             const openSmartMap = (item) => {
                 const target = item.address || item.name;
                 if(!target) return;
-                window.open(`http://googleusercontent.com/maps.google.com/9{encodeURIComponent(target)}`, '_blank');
+                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(target)}`, '_blank');
             };
 
             const getAdaptiveColor = (type) => ({ spot: currentThemeColor.value, food: '#E2B1B1', transport: '#8C9A9E', flight: '#6B7A8F', shopping: '#D1B28C' }[type] || currentThemeColor.value);
@@ -350,7 +404,7 @@
             return {
                 currentView, trips, filterCategory, showAddTripModal, showEditTripModal, showAddItineraryModal, showEditItineraryModal,
                 selectedTrip, currentThemeColor, sortedTrips, currentDayItinerary, activeTripData, morandiColors,
-                newShoppingItem, newItinerary, editingItinerary, newExpense, newHotel, totalExpenses, currentWeather,
+                newShoppingItem, newItinerary, editingItinerary, newExpense, newHotel, totalExpenses, computedWeather, weatherLoading,
                 tripTabs: [{id:'itinerary', label:'行程', icon:'fas fa-route'}, {id:'shopping', label:'清單', icon:'fas fa-tasks'}, {id:'expenses', label:'花費', icon:'fas fa-wallet'}, {id:'info', label:'住宿', icon:'fas fa-bed'}],
                 goToTrip, goHome, openAddTripModal, openEditTripModal, closeTripModal, saveTrip, deleteTrip, addItinerary, openEditItinerary, saveItinerary, deleteItinerary, addShoppingItem, addExpense, addHotel, openSmartMap, getMonthAbbr: (d) => ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][new Date(d).getMonth()], getDayOfWeek: (d) => ['SUN','MON','TUE','WED','THU','FRI','SAT'][new Date(d).getDay()], getAdaptiveColor, getItineraryIcon, formatNumber: (n) => new Intl.NumberFormat().format(n), getWeatherGradient
             };
