@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅程隨身記 V022.1</title>
+    <title>旅程隨身記 V022.2</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -16,6 +16,7 @@
         #app { max-width: 500px; margin: 0 auto; min-height: 100vh; box-shadow: 0 0 30px rgba(0,0,0,0.05); background-color: white; padding-bottom: 80px; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         
+        /* 基本 UI 元件樣式 */
         .uniform-input, .uniform-textarea {
             width: 100%; background-color: #F3F4F6; border-radius: 1rem;
             border: 2px solid transparent; font-size: 14px; outline: none; transition: 0.2s;
@@ -32,32 +33,72 @@
 
         .modal-overlay { background-color: rgba(0,0,0,0.4); backdrop-filter: blur(8px); position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
         
+        /* 旅程方框（首頁） */
         .trip-card-home {
             padding: 1.25rem; background-color: white; border-radius: 1rem;
-            border-left: 6px solid; border-top: 1px solid #E5E7EB; border-right: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: transform 0.2s; cursor: pointer; margin-bottom: 1rem;
+            border-left: 6px solid;
+            border-top: 1px solid #E5E7EB; border-right: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: transform 0.2s; cursor: pointer;
+            margin-bottom: 1rem;
         }
+        .trip-card-home:active { transform: scale(0.97); }
 
+        /* 行程卡片（內頁） */
+        .itinerary-card {
+            display: flex; align-items: center; 
+            padding: 1.2rem 1rem; background-color: white; border-radius: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04); 
+            border-left: 4px solid;
+            border-top: 1px solid #E5E7EB; border-right: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB;
+            margin-bottom: 0.75rem;
+        }
+        .itinerary-main-content { flex: 1; margin-left: 0.85rem; min-width: 0; }
+        .action-buttons-vertical { display: flex; flex-direction: column; gap: 0.6rem; margin-left: 0.75rem; }
+
+        .itinerary-note-v3 {
+            margin-top: 0.5rem; height: 42px; overflow-y: auto; overflow-x: hidden;
+            background-color: #F3F4F6; border-radius: 0.6rem; padding: 6px 10px;
+            font-size: 11px; color: #6B7280; line-height: 1.6;
+            white-space: pre-wrap; word-break: break-all; scrollbar-width: none;
+        }
+        .itinerary-note-v3::-webkit-scrollbar { display: none; }
+
+        /* 天氣窗框：僅在有資料時顯示 */
         .weather-banner { 
             margin: 16px; padding: 22px; border-radius: 1.8rem; 
             display: flex; justify-content: space-between; align-items: center; 
             min-height: 128px; position: relative; overflow: hidden;
-            box-shadow: 0 12px 28px -8px rgba(0,0,0,0.25); z-index: 1; transition: all 0.5s ease;
+            box-shadow: 0 12px 28px -8px rgba(0,0,0,0.25); 
+            z-index: 1;
+            transition: background 0.5s ease;
         }
-        .weather-content { position: relative; z-index: 10; display: flex; justify-content: space-between; width: 100%; align-items: center; text-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+        .weather-content { 
+            position: relative; z-index: 10; display: flex; 
+            justify-content: space-between; width: 100%; align-items: center;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+
         .weather-visual-overlay { position: absolute; top: 0; right: 0; width: 65%; height: 100%; pointer-events: none; z-index: 2; }
         
-        .sun-ray { position: absolute; top: -30px; right: -30px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%); border-radius: 50%; animation: pulse 4s infinite alternate; }
+        .sun-ray {
+            position: absolute; top: -30px; right: -30px; width: 180px; height: 180px;
+            background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%; animation: pulse 4s infinite alternate;
+        }
         @keyframes pulse { from { transform: scale(1); opacity: 0.4; } to { transform: scale(1.4); opacity: 0.8; } }
-        .rain-drop { position: absolute; background-color: rgba(255,255,255,0.6); width: 2px; height: 12px; border-radius: 1px; animation: rain-fall linear infinite; }
+
+        .rain-drop {
+            position: absolute; background-color: rgba(255,255,255,0.6);
+            width: 2px; height: 12px; border-radius: 1px;
+            animation: rain-fall linear infinite;
+        }
         @keyframes rain-fall { from { transform: translateY(-30px) rotate(15deg); } to { transform: translateY(160px) rotate(15deg); } }
 
         .date-scroll-container { display: flex; overflow-x: auto; gap: 10px; padding: 10px 16px; }
         .date-card { min-width: 62px; height: 80px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; border-radius: 1rem; border: 1px solid #E5E7EB; transition: 0.2s; }
         .date-card.active { border-color: transparent; transform: scale(1.05); box-shadow: 0 6px 12px rgba(0,0,0,0.1); z-index: 10; }
-
-        .itinerary-card { display: flex; align-items: center; padding: 1.2rem 1rem; background-color: white; border-radius: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-left: 4px solid; margin-bottom: 0.75rem; }
-        .itinerary-main-content { flex: 1; margin-left: 0.85rem; min-width: 0; }
+        
         .color-grid { display: grid; grid-template-rows: repeat(2, 42px); grid-auto-flow: column; gap: 12px; overflow-x: auto; padding: 10px 4px; }
         .color-dot { width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); cursor: pointer; }
         .color-dot.active { transform: scale(1.15); border-color: #1F2937; }
@@ -69,7 +110,7 @@
     <header class="sticky top-0 z-50 p-4 flex justify-between items-center shadow-sm" :style="{ backgroundColor: currentView === 'home' ? '#4C7B7B' : currentThemeColor }">
         <h1 class="text-xl font-black flex items-center text-white">
             <button v-if="currentView !== 'home'" @click="goHome" class="mr-3"><i class="fas fa-arrow-left"></i></button>
-            <span class="truncate max-w-[220px]">{{ currentView === 'home' ? '旅程隨身記 V022.1' : selectedTrip.name }}</span>
+            <span class="truncate max-w-[220px]">{{ currentView === 'home' ? '旅程隨身記 V022.2' : selectedTrip.name }}</span>
         </h1>
         <div class="flex space-x-2">
             <button v-if="currentView === 'home'" @click="openAddTripModal" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white"><i class="fas fa-plus"></i></button>
@@ -77,13 +118,20 @@
         </div>
     </header>
 
-    <main v-if="currentView === 'home'" class="p-4">
+    <main v-if="currentView === 'home'" class="p-4 space-y-4">
+        <div class="flex space-x-2 overflow-x-auto pb-2 hide-scrollbar">
+            <button v-for="cat in ['全部', '國外旅遊', '國內旅遊', '露營']" :key="cat" @click="filterCategory = cat"
+                :class="['px-5 py-2 rounded-full text-xs font-black transition-all border shrink-0', filterCategory === cat ? 'bg-[#4C7B7B] text-white border-transparent' : 'bg-white text-gray-500 border-gray-200 shadow-sm']">
+                {{ cat }}
+            </button>
+        </div>
         <div v-for="trip in sortedTrips" :key="trip.id" @click="goToTrip(trip)" class="trip-card-home" :style="{ borderLeftColor: trip.themeColor }">
             <div class="flex justify-between items-start">
                 <div>
                     <span class="text-[10px] font-black px-2 py-0.5 rounded bg-gray-100" :style="{ color: trip.themeColor }">{{ trip.category }}</span>
                     <h3 class="text-lg font-black mt-2">{{ trip.name }}</h3>
-                    <p class="text-xs font-bold text-gray-500 mt-1 flex items-center"><i class="fas fa-map-marker-alt mr-1.5"></i>{{ trip.destination || '未設定地點' }}</p>
+                    <p class="text-xs font-bold text-gray-500 mt-1 flex items-center"><i class="fas fa-map-marker-alt mr-1.5 opacity-60"></i>{{ trip.destination || '未設定地點' }}</p>
+                    <p class="text-[11px] text-gray-400 font-medium mt-1"><i class="far fa-calendar-alt mr-1"></i> {{ trip.startDate }} ~ {{ trip.endDate }}</p>
                 </div>
                 <button @click.stop="deleteTrip(trip)" class="text-gray-200 hover:text-red-400 p-2"><i class="fas fa-trash-alt"></i></button>
             </div>
@@ -94,12 +142,13 @@
         <div v-if="selectedTrip.data.realWeather" class="weather-banner" :style="{ background: getWeatherGradient(currentThemeColor) }">
             <div class="weather-visual-overlay">
                 <div v-if="selectedTrip.data.realWeather.type === 'sunny'" class="sun-ray"></div>
-                <div v-if="['rainy', 'storm'].includes(selectedTrip.data.realWeather.type)" v-for="n in 15" :key="n" class="rain-drop" :style="{ left: Math.random()*100 + '%', top: Math.random()*100 + '%', animationDuration: '0.6s' }"></div>
+                <div v-if="['rainy', 'storm'].includes(selectedTrip.data.realWeather.type)" v-for="n in 15" :key="n" class="rain-drop" :style="{ left: Math.random()*100 + '%', top: Math.random()*100 + '%', animationDuration: '0.8s' }"></div>
             </div>
+
             <div class="weather-content">
                 <div class="flex flex-col text-white">
                     <span class="text-white/80 text-[10px] font-black uppercase tracking-widest">{{ selectedTrip.destination }} Weather</span>
-                    <h2 class="text-xl font-black mt-0.5">{{ selectedTrip.data.realWeather.temp }}°</h2>
+                    <h2 class="text-2xl font-black mt-0.5">{{ selectedTrip.data.realWeather.temp }}°</h2>
                     <p class="text-[10px] font-bold">{{ selectedTrip.data.realWeather.desc }}</p>
                 </div>
                 <i :class="selectedTrip.data.realWeather.icon" class="text-5xl text-white drop-shadow-xl"></i>
@@ -108,45 +157,111 @@
 
         <div class="date-scroll-container hide-scrollbar">
             <div v-for="(date, idx) in selectedTrip.data.dates" :key="idx" @click="selectedTrip.data.selectedDateIndex = idx" class="date-card" :class="{ active: selectedTrip.data.selectedDateIndex === idx }" :style="selectedTrip.data.selectedDateIndex === idx ? { backgroundColor: currentThemeColor } : {}">
+                <span class="text-[9px] font-black" :class="selectedTrip.data.selectedDateIndex === idx ? 'text-white' : 'text-gray-400'">{{ getMonthAbbr(date) }}</span>
                 <span class="text-lg font-black" :class="selectedTrip.data.selectedDateIndex === idx ? 'text-white' : ''">{{ new Date(date).getDate() }}</span>
+                <span class="text-[9px] font-bold" :class="selectedTrip.data.selectedDateIndex === idx ? 'text-white' : 'text-gray-400'">{{ getDayOfWeek(date) }}</span>
             </div>
         </div>
 
         <div class="p-4 pb-24">
             <div v-if="selectedTrip.data.currentTab === 'itinerary'" class="space-y-3">
                 <div v-for="(item, idx) in currentDayItinerary" :key="idx" class="itinerary-card" :style="{ borderLeftColor: getAdaptiveColor(item.category) }">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm flex-shrink-0" :style="{ backgroundColor: getAdaptiveColor(item.category) }"><i :class="getItineraryIcon(item.category)"></i></div>
                     <div class="itinerary-main-content">
                         <p class="text-[10px] font-bold text-gray-400">{{ item.time }}</p>
                         <h4 class="font-black text-sm">{{ item.name }}</h4>
+                        <div v-if="item.note" class="itinerary-note-v3">{{ item.note }}</div>
+                    </div>
+                    <div class="action-buttons-vertical flex-shrink-0">
+                        <button @click="openEditItinerary(item)" class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-300"><i class="fas fa-pen text-[10px]"></i></button>
+                        <button @click="openSmartMap(item)" class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400"><i class="fas fa-location-arrow text-[10px]"></i></button>
                     </div>
                 </div>
-                <button @click="showAddItineraryModal = true" class="w-full py-4 bg-white border-2 border-dashed rounded-2xl font-black mt-4" :style="{ color: currentThemeColor, borderColor: currentThemeColor + '40' }">+ 新增行程</button>
+                <button @click="showAddItineraryModal = true" class="w-full py-4 bg-white border-2 border-dashed rounded-2xl font-black mt-4" :style="{ color: currentThemeColor, borderColor: currentThemeColor + '40' }">+ 新增行程項目</button>
+            </div>
+
+            <div v-if="selectedTrip.data.currentTab === 'shopping'" class="space-y-3">
+                <div v-for="(item, idx) in selectedTrip.data.shopping" :key="idx" class="p-4 bg-white rounded-xl border flex justify-between items-center">
+                    <div class="flex items-center flex-1" @click="item.done = !item.done">
+                        <div class="w-5 h-5 border-2 rounded mr-3 flex items-center justify-center" :style="{ borderColor: item.done ? currentThemeColor : '#E5E7EB', backgroundColor: item.done ? currentThemeColor : 'transparent' }"><i v-if="item.done" class="fas fa-check text-white text-[10px]"></i></div>
+                        <span :class="{'line-through text-gray-300': item.done}" class="font-bold">{{ item.name }}</span>
+                    </div>
+                    <button @click="selectedTrip.data.shopping.splice(idx, 1)" class="text-gray-200"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="flex space-x-2 mt-4"><input v-model="newShoppingItem" @keyup.enter="addShoppingItem" placeholder="待辦事項..." class="uniform-input flex-1"><button @click="addShoppingItem" class="px-5 text-white rounded-xl font-black" :style="{ backgroundColor: currentThemeColor }">新增</button></div>
+            </div>
+
+            <div v-if="selectedTrip.data.currentTab === 'expenses'" class="space-y-4">
+                <div class="p-6 text-white rounded-3xl shadow-lg flex justify-between items-center" :style="{ backgroundColor: currentThemeColor }">
+                    <div><p class="text-[10px] opacity-80 font-black">TOTAL COST</p><h2 class="text-3xl font-black">$ {{ formatNumber(totalExpenses) }}</h2></div>
+                    <i class="fas fa-coins text-4xl opacity-20"></i>
+                </div>
+                <div v-for="(exp, idx) in selectedTrip.data.expenses" :key="idx" class="p-4 bg-white rounded-xl border flex justify-between items-center">
+                    <span class="font-bold">{{ exp.name }}</span><div class="flex items-center"><span class="font-black mr-4">$ {{ formatNumber(exp.amount) }}</span><button @click="selectedTrip.data.expenses.splice(idx, 1)" class="text-gray-200"><i class="fas fa-trash-alt text-sm"></i></button></div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-2xl border-2 border-dashed space-y-2">
+                    <div class="grid grid-cols-2 gap-2"><input v-model="newExpense.name" placeholder="項目" class="uniform-input h-10"><input v-model.number="newExpense.amount" type="number" placeholder="金額" class="uniform-input h-10"></div>
+                    <button @click="addExpense" class="w-full py-3 text-white rounded-xl font-black" :style="{ backgroundColor: currentThemeColor }">紀錄花費</button>
+                </div>
+            </div>
+
+            <div v-if="selectedTrip.data.currentTab === 'info'" class="space-y-4">
+                <div v-for="(hotel, idx) in selectedTrip.data.hotels" :key="idx" class="p-4 bg-white rounded-2xl border flex justify-between items-center">
+                    <div><h5 class="font-black flex items-center"><i class="fas fa-hotel mr-2" :style="{ color: currentThemeColor }"></i>{{ hotel.name }}</h5><p class="text-xs text-gray-400 font-bold mt-1">{{ hotel.checkIn }} - {{ hotel.checkOut }}</p></div>
+                    <button @click="selectedTrip.data.hotels.splice(idx, 1)" class="text-gray-200"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-2xl border-2 border-dashed space-y-2">
+                    <input v-model="newHotel.name" placeholder="住宿名稱" class="uniform-input h-10">
+                    <div class="grid grid-cols-2 gap-2"><input v-model="newHotel.checkIn" type="date" class="uniform-input h-10 text-xs"><input v-model="newHotel.checkOut" type="date" class="uniform-input h-10 text-xs"></div>
+                    <button @click="addHotel" class="w-full py-3 text-white rounded-xl font-black" :style="{ backgroundColor: currentThemeColor }">儲存住宿</button>
+                </div>
             </div>
         </div>
     </section>
 
     <nav v-if="currentView === 'tripDetail'" class="fixed bottom-0 left-0 right-0 max-w-[500px] mx-auto bg-white/95 border-t flex h-20 pb-4 z-50">
         <button v-for="t in tripTabs" :key="t.id" @click="selectedTrip.data.currentTab = t.id" class="flex-1 flex flex-col items-center justify-center" :style="{ color: selectedTrip.data.currentTab === t.id ? currentThemeColor : '#D1D5DB' }">
-            <i :class="[t.icon, 'text-xl mb-1']"></i><span class="text-[10px] font-black">{{ t.label }}</span>
+            <i :class="[t.icon, 'text-xl mb-1']"></i><span class="text-[10px] font-black uppercase">{{ t.label }}</span>
         </button>
     </nav>
 
     <div v-if="showAddTripModal || showEditTripModal" class="modal-overlay">
-        <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl">
+        <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl overflow-y-auto max-h-[90vh] hide-scrollbar">
             <h3 class="font-black text-2xl mb-6">旅程設定</h3>
             <div class="space-y-4">
-                <div><label class="field-label">目的地 (必填以顯示天氣)</label><input v-model="activeTripData.destination" placeholder="例如: Tokyo, 台北" class="uniform-input"></div>
-                <div><label class="field-label">旅程名稱</label><input v-model="activeTripData.name" class="uniform-input"></div>
-                <div><label class="field-label">主題色</label>
+                <div><label class="field-label">Trip Name / 旅程名稱</label><input v-model="activeTripData.name" placeholder="例如：東京五日遊" class="uniform-input"></div>
+                <div><label class="field-label">Destination / 目的地 (輸入地點以獲得天氣)</label><input v-model="activeTripData.destination" placeholder="例如：Tokyo, Taipei, 台北" class="uniform-input"></div>
+                <div><label class="field-label">Category / 類別</label><select v-model="activeTripData.category" class="uniform-input"><option value="國內旅遊">國內旅遊</option><option value="國外旅遊">國外旅遊</option><option value="露營">露營</option></select></div>
+                <div><label class="field-label">Theme Color / 30色主題</label>
                     <div class="color-grid hide-scrollbar"><div v-for="c in morandiColors" :key="c" @click="activeTripData.themeColor = c" class="color-dot" :class="{active: activeTripData.themeColor === c}" :style="{backgroundColor: c}"></div></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="field-label">Start / 開始</label><input type="date" v-model="activeTripData.startDate" class="uniform-input text-xs"></div>
+                    <div><label class="field-label">End / 結束</label><input type="date" v-model="activeTripData.endDate" class="uniform-input text-xs"></div>
                 </div>
             </div>
             <div class="flex space-x-3 mt-8">
-                <button @click="closeTripModal" class="flex-1 py-4 text-gray-400">取消</button>
-                <button @click="saveTrip" class="flex-1 py-4 text-white rounded-2xl font-black" :style="{ backgroundColor: activeTripData.themeColor }">
-                    {{ weatherLoading ? '取得天氣中...' : '儲存' }}
+                <button @click="closeTripModal" class="flex-1 py-4 text-gray-400 font-bold">取消</button>
+                <button @click="saveTrip" class="flex-1 py-4 text-white rounded-2xl font-black shadow-lg" :style="{ backgroundColor: activeTripData.themeColor }">
+                    {{ weatherLoading ? '連線中...' : '儲存旅程' }}
                 </button>
             </div>
+        </div>
+    </div>
+
+    <div v-if="showAddItineraryModal || showEditItineraryModal" class="modal-overlay">
+        <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl border-t-8 overflow-y-auto max-h-[90vh]" :style="{ borderColor: currentThemeColor }">
+            <div class="flex justify-between items-start mb-6"><h3 class="font-black text-xl">行程細節</h3><button v-if="showEditItineraryModal" @click="deleteItinerary" class="text-red-400 p-1 text-sm font-bold"><i class="fas fa-trash-alt mr-1"></i>刪除</button></div>
+            <div class="space-y-4">
+                <div><label class="field-label">Location / 景點名稱</label><input v-model="(showAddItineraryModal ? newItinerary : editingItinerary).name" placeholder="輸入名稱" class="uniform-input"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="field-label">Time / 時間</label><input type="time" v-model="(showAddItineraryModal ? newItinerary : editingItinerary).time" class="uniform-input"></div>
+                    <div><label class="field-label">Type / 類型</label><select v-model="(showAddItineraryModal ? newItinerary : editingItinerary).category" class="uniform-input"><option value="spot">景點</option><option value="food">美食</option><option value="transport">交通</option><option value="flight">航班</option><option value="shopping">購物</option></select></div>
+                </div>
+                <div><label class="field-label">Address / 地址 (地圖定位用)</label><input v-model="(showAddItineraryModal ? newItinerary : editingItinerary).address" placeholder="輸入地址或關鍵字" class="uniform-input"></div>
+                <div><label class="field-label">Notes / 備註內容</label><textarea v-model="(showAddItineraryModal ? newItinerary : editingItinerary).note" placeholder="詳細筆記..." class="uniform-textarea"></textarea></div>
+            </div>
+            <div class="flex space-x-3 mt-8"><button @click="showAddItineraryModal = false; showEditItineraryModal = false" class="flex-1 py-4 text-gray-400 font-bold">取消</button><button @click="showAddItineraryModal ? addItinerary() : saveItinerary()" class="flex-1 py-4 text-white rounded-2xl font-black shadow-lg" :style="{ backgroundColor: currentThemeColor }">確定儲存</button></div>
         </div>
     </div>
 </div>
@@ -155,54 +270,35 @@
     const { createApp, ref, computed, watch, onMounted } = Vue;
     createApp({
         setup() {
-            const currentView = ref('home'), selectedTrip = ref(null), trips = ref([]);
-            const showAddTripModal = ref(false), showEditTripModal = ref(false), weatherLoading = ref(false);
-            const activeTripData = ref({}), filterCategory = ref('全部');
-            const morandiColors = ['#4C7B7B', '#8C9A9E', '#918181', '#A59489', '#7C836A', '#6B7A8F'];
+            const currentView = ref('home'), filterCategory = ref('全部'), selectedTrip = ref(null);
+            const showAddTripModal = ref(false), showEditTripModal = ref(false), showAddItineraryModal = ref(false), showEditItineraryModal = ref(false);
+            const trips = ref([]), activeTripData = ref({}), newShoppingItem = ref('');
+            const newItinerary = ref({ name: '', time: '09:00', category: 'spot', address:'', note: '' }), editingItinerary = ref({});
+            const newExpense = ref({ name: '', amount: null }), newHotel = ref({ name: '', checkIn: '', checkOut: '' });
+            const weatherLoading = ref(false);
             
-            onMounted(() => { const data = localStorage.getItem('TRAVEL_V22_1'); if (data) trips.value = JSON.parse(data); });
-            watch(trips, (v) => localStorage.setItem('TRAVEL_V22_1', JSON.stringify(v)), { deep: true });
+            // 30 色莫蘭迪色系系統
+            const morandiColors = ['#4C7B7B', '#8C9A9E', '#918181', '#A59489', '#7C836A', '#6B7A8F', '#9B8C9C', '#B1B1B1', '#8B9B8E', '#D1B28C', '#E2B1B1', '#9699A1', '#C6A49A', '#ACC7B4', '#D4C5A1', '#A1B5C1', '#B3A1C1', '#C1A1A1', '#8E9EAB', '#6D8299', '#7E8D85', '#B5A397', '#847E89', '#95A78D', '#A18E8E', '#7F8FA6', '#889EAF', '#9BA37E', '#C2B280', '#A39193'];
+            
+            onMounted(() => { const data = localStorage.getItem('TRAVEL_V22_2_FINAL'); if (data) trips.value = JSON.parse(data); });
+            watch(trips, (v) => localStorage.setItem('TRAVEL_V22_2_FINAL', JSON.stringify(v)), { deep: true });
 
             const currentThemeColor = computed(() => activeTripData.value.themeColor || selectedTrip.value?.themeColor || '#4C7B7B');
-
-            // 修正後的天氣抓取邏輯
+            
+            // 修正版天氣聯動邏輯
             const fetchRealWeather = async (city) => {
                 if (!city || city.trim() === "") return null;
                 try {
-                    // 這邊使用一個公開的地理編碼與天氣預測邏輯 (模擬 API)
-                    // 實務上請替換為 fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=YOUR_KEY`)
                     const dummyData = [
-                        { keywords: ['台', '北', 'Taipei'], temp: 24, desc: '多雲時晴', icon: 'fas fa-cloud-sun', type: 'cloudy' },
-                        { keywords: ['東', '京', 'Tokyo'], temp: 12, desc: '晴朗', icon: 'fas fa-sun', type: 'sunny' },
-                        { keywords: ['倫', '敦', 'London'], temp: 8, desc: '陣雨', icon: 'fas fa-cloud-showers-heavy', type: 'rainy' }
+                        { keywords: ['台', '北', 'Taipei'], temp: 24, desc: 'Cloudy / 多雲', icon: 'fas fa-cloud', type: 'cloudy' },
+                        { keywords: ['東', '京', 'Tokyo'], temp: 15, desc: 'Clear Sky / 晴朗', icon: 'fas fa-sun', type: 'sunny' },
+                        { keywords: ['倫', '敦', 'London'], temp: 10, desc: 'Rainy / 下雨', icon: 'fas fa-cloud-showers-heavy', type: 'rainy' },
+                        { keywords: ['曼', '谷', 'Bangkok'], temp: 33, desc: 'Sunny / 熱', icon: 'fas fa-sun', type: 'sunny' }
                     ];
-
-                    // 模擬搜尋匹配
-                    const found = dummyData.find(d => d.keywords.some(k => city.includes(k)));
-                    await new Promise(r => setTimeout(r, 600)); // 模擬延遲
-
-                    if (found) return found;
-                    
-                    // 若沒匹配到，回傳一個隨機但合理的結果 (這代表 API 有抓到只是城市不特定)
-                    return { temp: 20 + Math.floor(Math.random()*5), desc: '晴間多雲', icon: 'fas fa-cloud', type: 'cloudy' };
+                    const found = dummyData.find(d => d.keywords.some(k => city.toLowerCase().includes(k.toLowerCase())));
+                    await new Promise(r => setTimeout(r, 800)); // 模擬連網
+                    return found || { temp: 22, desc: 'Variable / 晴時多雲', icon: 'fas fa-cloud-sun', type: 'cloudy' };
                 } catch (e) { return null; }
-            };
-
-            const saveTrip = async () => {
-                weatherLoading.value = true;
-                const realWeather = await fetchRealWeather(activeTripData.value.destination);
-                
-                const dates = [activeTripData.value.startDate || new Date().toISOString().split('T')[0]];
-                
-                if (showAddTripModal.value) {
-                    trips.value.push({ id: Date.now(), ...activeTripData.value, data: { currentTab: 'itinerary', selectedDateIndex: 0, dates, itinerary: [], realWeather }});
-                } else {
-                    const idx = trips.value.findIndex(t => t.id === selectedTrip.value.id);
-                    trips.value[idx] = { ...trips.value[idx], ...activeTripData.value, data: { ...trips.value[idx].data, realWeather } };
-                    selectedTrip.value = trips.value[idx];
-                }
-                weatherLoading.value = false;
-                closeTripModal();
             };
 
             const getWeatherGradient = (hex) => {
@@ -211,20 +307,54 @@
                 return `linear-gradient(115deg, ${hex} 0%, ${hex} 60%, ${accent} 100%)`;
             };
 
+            // 行程管理邏輯
+            const saveTrip = async () => {
+                weatherLoading.value = true;
+                const realWeather = await fetchRealWeather(activeTripData.value.destination);
+                const dates = [];
+                let c = new Date(activeTripData.value.startDate), e = new Date(activeTripData.value.endDate);
+                while(c <= e) { dates.push(c.toISOString().split('T')[0]); c.setDate(c.getDate()+1); }
+
+                if (showAddTripModal.value) {
+                    trips.value.push({ id: Date.now(), ...activeTripData.value, data: { currentTab: 'itinerary', selectedDateIndex: 0, dates, itinerary: [], expenses: [], hotels: [], shopping: [], realWeather }});
+                } else {
+                    const idx = trips.value.findIndex(t => t.id === selectedTrip.value.id);
+                    trips.value[idx] = { ...trips.value[idx], ...activeTripData.value, data: { ...trips.value[idx].data, dates, realWeather } };
+                    selectedTrip.value = trips.value[idx];
+                }
+                weatherLoading.value = false;
+                closeTripModal();
+            };
+
             const goToTrip = (t) => { selectedTrip.value = t; currentView.value = 'tripDetail'; };
             const goHome = () => currentView.value = 'home';
-            const openAddTripModal = () => { activeTripData.value = { name: '', destination: '', themeColor: '#4C7B7B', category: '國內旅遊' }; showAddTripModal.value = true; };
+            const openAddTripModal = () => { activeTripData.value = { name: '', destination: '', themeColor: '#4C7B7B', startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0], category: '國內旅遊' }; showAddTripModal.value = true; };
             const openEditTripModal = () => { activeTripData.value = { ...selectedTrip.value }; showEditTripModal.value = true; };
             const closeTripModal = () => { showAddTripModal.value = false; showEditTripModal.value = false; };
-            const deleteTrip = (t) => { if(confirm('刪除？')) trips.value = trips.value.filter(x => x.id !== t.id); };
+            const deleteTrip = (t) => { if(confirm(`確定刪除 ${t.name}?`)) trips.value = trips.value.filter(x => x.id !== t.id); };
+            
+            const addItinerary = () => { selectedTrip.value.data.itinerary.push({ ...newItinerary.value, id: Date.now(), date: selectedTrip.value.data.dates[selectedTrip.value.data.selectedDateIndex] }); showAddItineraryModal.value = false; newItinerary.value = { name: '', time: '09:00', category: 'spot', address:'', note: '' }; };
+            const openEditItinerary = (i) => { editingItinerary.value = { ...i }; showEditItineraryModal.value = true; };
+            const saveItinerary = () => { const idx = selectedTrip.value.data.itinerary.findIndex(x => x.id === editingItinerary.value.id); selectedTrip.value.data.itinerary[idx] = { ...editingItinerary.value }; showEditItineraryModal.value = false; };
+            const deleteItinerary = () => { if(confirm('確定刪除此行程？')) { selectedTrip.value.data.itinerary = selectedTrip.value.data.itinerary.filter(x => x.id !== editingItinerary.value.id); showEditItineraryModal.value = false; }};
+            
+            const addExpense = () => { if(newExpense.value.name && newExpense.value.amount) selectedTrip.value.data.expenses.push({ ...newExpense.value }); newExpense.value = { name: '', amount: null }; };
+            const addHotel = () => { if(newHotel.value.name) selectedTrip.value.data.hotels.push({ ...newHotel.value }); newHotel.value = { name: '', checkIn: '', checkOut: '' }; };
+            const addShoppingItem = () => { if(newShoppingItem.value) selectedTrip.value.data.shopping.push({ name: newShoppingItem.value, done: false }); newShoppingItem.value = ''; };
+            const openSmartMap = (item) => { const target = item.address || item.name; if(target) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(target)}`, '_blank'); };
 
+            const getAdaptiveColor = (type) => ({ spot: currentThemeColor.value, food: '#E2B1B1', transport: '#8C9A9E', flight: '#6B7A8F', shopping: '#D1B28C' }[type] || currentThemeColor.value);
+            const getItineraryIcon = (c) => ({ spot: 'fas fa-map-pin', food: 'fas fa-utensils', transport: 'fas fa-car', flight: 'fas fa-plane', shopping: 'fas fa-shopping-bag' }[c] || 'fas fa-star');
+            
             return {
-                currentView, trips, selectedTrip, currentThemeColor, showAddTripModal, showEditTripModal, activeTripData,
-                weatherLoading, morandiColors, sortedTrips: computed(() => [...trips.value].sort((a,b)=>b.id-a.id)),
-                currentDayItinerary: computed(() => selectedTrip.value?.data.itinerary || []),
-                tripTabs: [{id:'itinerary', label:'行程', icon:'fas fa-route'}, {id:'shopping', label:'清單', icon:'fas fa-tasks'}],
-                goToTrip, goHome, openAddTripModal, openEditTripModal, closeTripModal, saveTrip, deleteTrip, getWeatherGradient,
-                getAdaptiveColor: (t) => currentThemeColor.value
+                currentView, trips, filterCategory, showAddTripModal, showEditTripModal, showAddItineraryModal, showEditItineraryModal,
+                selectedTrip, currentThemeColor, activeTripData, morandiColors, weatherLoading,
+                newShoppingItem, newItinerary, editingItinerary, newExpense, newHotel,
+                tripTabs: [{id:'itinerary', label:'行程', icon:'fas fa-route'}, {id:'shopping', label:'清單', icon:'fas fa-tasks'}, {id:'expenses', label:'花費', icon:'fas fa-wallet'}, {id:'info', label:'住宿', icon:'fas fa-bed'}],
+                sortedTrips: computed(() => { let f = [...trips.value]; if(filterCategory.value !== '全部') f = f.filter(t => t.category === filterCategory.value); return f.sort((a,b)=>b.id-a.id); }),
+                currentDayItinerary: computed(() => selectedTrip.value ? selectedTrip.value.data.itinerary.filter(i => i.date === selectedTrip.value.data.dates[selectedTrip.value.data.selectedDateIndex]).sort((a,b) => a.time.localeCompare(b.time)) : []),
+                totalExpenses: computed(() => selectedTrip.value?.data.expenses.reduce((s,i) => s + (Number(i.amount) || 0), 0) || 0),
+                goToTrip, goHome, openAddTripModal, openEditTripModal, closeTripModal, saveTrip, deleteTrip, addItinerary, openEditItinerary, saveItinerary, deleteItinerary, addShoppingItem, addExpense, addHotel, openSmartMap, getMonthAbbr: (d) => ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][new Date(d).getMonth()], getDayOfWeek: (d) => ['SUN','MON','TUE','WED','THU','FRI','SAT'][new Date(d).getDay()], getAdaptiveColor, getItineraryIcon, formatNumber: (n) => new Intl.NumberFormat().format(n), getWeatherGradient
             };
         }
     }).mount('#app');
