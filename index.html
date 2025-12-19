@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅程隨身記 V022.3</title>
+    <title>旅程隨身記 V030.0</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -31,7 +31,7 @@
         .itinerary-card { display: flex; align-items: center; padding: 1.2rem 1rem; background-color: white; border-radius: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-left: 4px solid; border-top: 1px solid #E5E7EB; border-right: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB; margin-bottom: 0.75rem; }
         .itinerary-main-content { flex: 1; margin-left: 0.85rem; min-width: 0; }
         
-        /* 備註欄位 */
+        /* 備註欄位：隱藏滾輪 */
         .itinerary-note-v3 { margin-top: 0.5rem; height: 42px; overflow-y: auto; background-color: #F3F4F6; border-radius: 0.6rem; padding: 6px 10px; font-size: 11px; color: #6B7280; line-height: 1.6; white-space: pre-wrap; word-break: break-all; -ms-overflow-style: none; scrollbar-width: none; }
         .itinerary-note-v3::-webkit-scrollbar { display: none; }
 
@@ -41,19 +41,16 @@
         .weather-visual-overlay { position: absolute; top: 0; right: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
         .divider-line { width: 2px; height: 28px; background-color: rgba(255,255,255,0.4); margin: 0 12px; }
 
-        /* 太陽特效 */
+        /* 天氣特效動畫 */
         .sun-ray { position: absolute; top: -30px; right: -30px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%); border-radius: 50%; animation: pulse 4s infinite alternate; }
         @keyframes pulse { from { transform: scale(1); opacity: 0.4; } to { transform: scale(1.4); opacity: 0.8; } }
         
-        /* 下雨特效 */
         .rain-drop { position: absolute; background-color: rgba(255,255,255,0.6); width: 2px; height: 12px; border-radius: 1px; animation: rain-fall linear infinite; }
         @keyframes rain-fall { from { transform: translateY(-30px) rotate(15deg); } to { transform: translateY(180px) rotate(15deg); } }
         
-        /* 多雲：大片雲朵慢速漂浮 */
         .cloud-puff { position: absolute; background: rgba(255,255,255,0.4); border-radius: 50%; filter: blur(20px); animation: cloud-float linear infinite; }
         @keyframes cloud-float { from { transform: translateX(-150px); } to { transform: translateX(550px); } }
 
-        /* 強風：細長、快速、帶有震動感的線條 */
         .wind-streak { position: absolute; height: 2px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent); border-radius: 2px; animation: wind-move linear infinite, wind-shake 0.5s infinite; }
         @keyframes wind-move { from { transform: translateX(-200px); } to { transform: translateX(500px); } }
         @keyframes wind-shake { 0%, 100% { margin-top: 0px; } 50% { margin-top: 3px; } }
@@ -73,7 +70,7 @@
     <header class="sticky top-0 z-50 p-4 flex justify-between items-center shadow-sm" :style="{ backgroundColor: currentView === 'home' ? '#4C7B7B' : currentThemeColor }">
         <h1 class="text-xl font-black flex items-center text-white">
             <button v-if="currentView !== 'home'" @click="goHome" class="mr-3"><i class="fas fa-arrow-left"></i></button>
-            <span class="truncate max-w-[220px]">{{ currentView === 'home' ? '旅程隨身記 V022.3' : selectedTrip.name }}</span>
+            <span class="truncate max-w-[220px]">{{ currentView === 'home' ? '旅程隨身記 V030.0' : selectedTrip.name }}</span>
         </h1>
         <div class="flex space-x-2">
             <button v-if="currentView === 'home'" @click="openAddTripModal" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white"><i class="fas fa-plus"></i></button>
@@ -161,6 +158,7 @@
                 </div>
                 <div class="flex space-x-2 mt-4"><input v-model="newShoppingItem" @keyup.enter="addShoppingItem" placeholder="待辦事項..." class="uniform-input flex-1"><button @click="addShoppingItem" class="px-5 text-white rounded-xl font-black" :style="{ backgroundColor: currentThemeColor }">新增</button></div>
             </div>
+
             <div v-if="selectedTrip.data.currentTab === 'expenses'" class="space-y-4">
                 <div class="p-6 text-white rounded-3xl shadow-lg flex justify-between items-center" :style="{ backgroundColor: currentThemeColor }">
                     <div><p class="text-[10px] opacity-80 font-black">TOTAL COST</p><h2 class="text-3xl font-black">$ {{ formatNumber(totalExpenses) }}</h2></div>
@@ -174,6 +172,7 @@
                     <button @click="addExpense" class="w-full py-3 text-white rounded-xl font-black" :style="{ backgroundColor: currentThemeColor }">紀錄花費</button>
                 </div>
             </div>
+
             <div v-if="selectedTrip.data.currentTab === 'info'" class="space-y-4">
                 <div v-for="(hotel, idx) in selectedTrip.data.hotels" :key="idx" class="p-4 bg-white rounded-2xl border flex justify-between items-center">
                     <div><h5 class="font-black flex items-center"><i class="fas fa-hotel mr-2" :style="{ color: currentThemeColor }"></i>{{ hotel.name }}</h5><p class="text-xs text-gray-400 font-bold mt-1">{{ hotel.checkIn }} - {{ hotel.checkOut }}</p></div>
@@ -216,7 +215,7 @@
         <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl border-t-8 overflow-y-auto max-h-[90vh]" :style="{ borderColor: currentThemeColor }">
             <div class="flex justify-between items-start mb-6">
                 <h3 class="font-black text-xl">{{ showAddItineraryModal ? '新增行程' : '編輯行程' }}</h3>
-                <button v-if="showEditItineraryModal" @click="deleteItinerary" class="text-red-400 p-1 hover:text-red-600 transition-colors"><i class="fas fa-trash-alt text-lg"></i></button>
+                <button v-if="showEditItineraryModal" @click="deleteItinerary" class="text-red-400 p-1 hover:text-red-600"><i class="fas fa-trash-alt text-lg"></i></button>
             </div>
             <div class="space-y-4">
                 <div><label class="field-label">Spot Name</label><input v-model="(showAddItineraryModal ? newItinerary : editingItinerary).name" placeholder="輸入景點名稱" class="uniform-input"></div>
@@ -247,8 +246,8 @@
             const weatherLoading = ref(false);
             const morandiColors = ['#4C7B7B', '#8C9A9E', '#918181', '#A59489', '#7C836A', '#6B7A8F', '#9B8C9C', '#B1B1B1', '#8B9B8E', '#D1B28C', '#E2B1B1', '#9699A1', '#C6A49A', '#ACC7B4', '#D4C5A1', '#A1B5C1', '#B3A1C1', '#C1A1A1', '#8E9EAB', '#6D8299', '#7E8D85', '#B5A397', '#847E89', '#95A78D', '#A18E8E', '#7F8FA6', '#889EAF', '#9BA37E', '#C2B280', '#A39193'];
             
-            onMounted(() => { const data = localStorage.getItem('TRAVEL_V22_3'); if (data) trips.value = JSON.parse(data); });
-            watch(trips, (v) => localStorage.setItem('TRAVEL_V22_3', JSON.stringify(v)), { deep: true });
+            onMounted(() => { const data = localStorage.getItem('TRAVEL_V30_0'); if (data) trips.value = JSON.parse(data); });
+            watch(trips, (v) => localStorage.setItem('TRAVEL_V30_0', JSON.stringify(v)), { deep: true });
 
             const currentThemeColor = computed(() => activeTripData.value.themeColor || selectedTrip.value?.themeColor || '#4C7B7B');
             
@@ -313,7 +312,7 @@
             const addExpense = () => { if(newExpense.value.name && newExpense.value.amount) selectedTrip.value.data.expenses.push({ ...newExpense.value }); newExpense.value = { name: '', amount: null }; };
             const addHotel = () => { if(newHotel.value.name) selectedTrip.value.data.hotels.push({ ...newHotel.value }); newHotel.value = { name: '', checkIn: '', checkOut: '' }; };
             const addShoppingItem = () => { if(newShoppingItem.value) selectedTrip.value.data.shopping.push({ name: newShoppingItem.value, done: false }); newShoppingItem.value = ''; };
-            const openSmartMap = (item) => { const target = item.address || item.name; if(target) window.open(`http://maps.google.com/maps?q=${encodeURIComponent(target)}`, '_blank'); };
+            const openSmartMap = (item) => { const target = item.address || item.name; if(target) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(target)}`, '_blank'); };
 
             return {
                 currentView, trips, filterCategory, showAddTripModal, showEditTripModal, showAddItineraryModal, showEditItineraryModal,
