@@ -27,24 +27,35 @@
         /* 旅程方框 (首頁) */
         .trip-card-home { padding: 1.25rem; background-color: white; border-radius: 1rem; border-left: 6px solid; border-top: 1px solid #E5E7EB; border-right: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: transform 0.2s; cursor: pointer; margin-bottom: 1rem; }
 
-        /* 行程卡片：優化加入外框線 (1px solid #E5E7EB) */
+        /* 行程卡片：加入外框線 */
         .itinerary-card { display: flex; align-items: center; padding: 1.2rem 1rem; background-color: white; border-radius: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-left: 4px solid; border-top: 1px solid #E5E7EB; border-right: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB; margin-bottom: 0.75rem; }
         .itinerary-main-content { flex: 1; margin-left: 0.85rem; min-width: 0; }
         
-        /* 備註欄位：優化隱藏滾輪滑軸 */
+        /* 備註欄位：隱藏滾輪滑軸 */
         .itinerary-note-v3 { margin-top: 0.5rem; height: 42px; overflow-y: auto; background-color: #F3F4F6; border-radius: 0.6rem; padding: 6px 10px; font-size: 11px; color: #6B7280; line-height: 1.6; white-space: pre-wrap; word-break: break-all; -ms-overflow-style: none; scrollbar-width: none; }
         .itinerary-note-v3::-webkit-scrollbar { display: none; }
 
-        /* 天氣窗框 */
+        /* 天氣窗框與動態效果 */
         .weather-banner { margin: 16px; padding: 24px; border-radius: 2rem; display: flex; justify-content: space-between; align-items: center; min-height: 160px; position: relative; overflow: hidden; box-shadow: 0 12px 28px -8px rgba(0,0,0,0.25); z-index: 1; transition: all 0.5s ease-in-out; }
         .weather-content { position: relative; z-index: 10; display: flex; justify-content: space-between; width: 100%; align-items: flex-end; text-shadow: 0 1px 3px rgba(0,0,0,0.15); }
-        .weather-visual-overlay { position: absolute; top: 0; right: 0; width: 65%; height: 100%; pointer-events: none; z-index: 2; }
+        .weather-visual-overlay { position: absolute; top: 0; right: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
         .divider-line { width: 2px; height: 28px; background-color: rgba(255,255,255,0.4); margin: 0 12px; }
 
+        /* 太陽 */
         .sun-ray { position: absolute; top: -30px; right: -30px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%); border-radius: 50%; animation: pulse 4s infinite alternate; }
         @keyframes pulse { from { transform: scale(1); opacity: 0.4; } to { transform: scale(1.4); opacity: 0.8; } }
+        
+        /* 下雨 */
         .rain-drop { position: absolute; background-color: rgba(255,255,255,0.6); width: 2px; height: 12px; border-radius: 1px; animation: rain-fall linear infinite; }
-        @keyframes rain-fall { from { transform: translateY(-30px) rotate(15deg); } to { transform: translateY(160px) rotate(15deg); } }
+        @keyframes rain-fall { from { transform: translateY(-30px) rotate(15deg); } to { transform: translateY(180px) rotate(15deg); } }
+        
+        /* 多雲：漂浮雲朵 */
+        .cloud-puff { position: absolute; background: rgba(255,255,255,0.3); border-radius: 50%; filter: blur(15px); animation: cloud-float linear infinite; }
+        @keyframes cloud-float { from { transform: translateX(-120px); } to { transform: translateX(550px); } }
+
+        /* 狂風：動態線條 */
+        .wind-streak { position: absolute; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: wind-move linear infinite; }
+        @keyframes wind-move { from { transform: translateX(-100px); opacity: 0; } 50% { opacity: 1; } to { transform: translateX(500px); opacity: 0; } }
 
         .date-scroll-container { display: flex; overflow-x: auto; gap: 10px; padding: 10px 16px; }
         .date-card { min-width: 62px; height: 80px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; border-radius: 1rem; border: 1px solid #E5E7EB; transition: 0.2s; cursor: pointer;}
@@ -93,7 +104,9 @@
         <div v-if="currentDayWeather" class="weather-banner" :style="{ background: getWeatherGradient(currentThemeColor) }">
             <div class="weather-visual-overlay">
                 <div v-if="currentDayWeather.type === 'sunny'" class="sun-ray"></div>
-                <div v-if="['rainy', 'storm'].includes(currentDayWeather.type)" v-for="n in 12" :key="n" class="rain-drop" :style="{ left: Math.random()*100 + '%', top: Math.random()*100 + '%', animationDuration: (0.5+Math.random())+'s' }"></div>
+                <div v-if="['rainy', 'storm'].includes(currentDayWeather.type)" v-for="n in 12" :key="'rain-'+n" class="rain-drop" :style="{ left: Math.random()*100 + '%', top: Math.random()*100 + '%', animationDuration: (0.5+Math.random())+'s' }"></div>
+                <div v-if="currentDayWeather.type === 'cloudy'" v-for="n in 4" :key="'cloud-'+n" class="cloud-puff" :style="{ width: (100+Math.random()*100)+'px', height: (60+Math.random()*40)+'px', left: '-150px', top: (10+Math.random()*60)+'%', animationDuration: (15+Math.random()*10)+'s', animationDelay: (n*3)+'s' }"></div>
+                <div v-if="currentDayWeather.type === 'windy'" v-for="n in 8" :key="'wind-'+n" class="wind-streak" :style="{ width: (50+Math.random()*150)+'px', left: '-100px', top: (20+Math.random()*70)+'%', animationDuration: (1+Math.random()*2)+'s', animationDelay: (Math.random()*3)+'s' }"></div>
             </div>
             <div class="weather-content">
                 <div class="flex flex-col text-white">
@@ -212,9 +225,9 @@
                 <div><label class="field-label">Address / 地址 (地圖導航用)</label><input v-model="(showAddItineraryModal ? newItinerary : editingItinerary).address" placeholder="點選導航會以此為準" class="uniform-input"></div>
                 <div><label class="field-label">Note / 備註</label><textarea v-model="(showAddItineraryModal ? newItinerary : editingItinerary).note" placeholder="記錄重要事項..." class="uniform-textarea"></textarea></div>
             </div>
-            <div class="flex flex-col space-y-2 mt-8">
-                <button @click="showAddItineraryModal ? addItinerary() : saveItinerary()" class="w-full py-4 text-white rounded-2xl font-black shadow-lg" :style="{ backgroundColor: currentThemeColor }">儲存項目</button>
-                <button @click="showAddItineraryModal = false; showEditItineraryModal = false" class="w-full py-3 text-gray-400 font-bold">取消</button>
+            <div class="flex space-x-3 mt-8">
+                <button @click="showAddItineraryModal = false; showEditItineraryModal = false" class="flex-1 py-4 text-gray-400 font-bold">取消</button>
+                <button @click="showAddItineraryModal ? addItinerary() : saveItinerary()" class="flex-1 py-4 text-white rounded-2xl font-black shadow-lg" :style="{ backgroundColor: currentThemeColor }">儲存項目</button>
             </div>
         </div>
     </div>
@@ -240,7 +253,13 @@
             const fetchMultiDayWeather = async (city, count) => {
                 if (!city || city.trim() === "") return null;
                 try {
-                    const pool = [{ temp: 24, desc: 'Cloudy / 多雲', icon: 'fas fa-cloud', type: 'cloudy' }, { temp: 15, desc: 'Clear Sky / 晴朗', icon: 'fas fa-sun', type: 'sunny' }, { temp: 10, desc: 'Rainy / 下雨', icon: 'fas fa-cloud-showers-heavy', type: 'rainy' }, { temp: 20, desc: 'Windy / 強風', icon: 'fas fa-wind', type: 'cloudy' }];
+                    // 模擬天氣池：確保包含 sunny, cloudy, rainy, windy 等類型以對應動畫
+                    const pool = [
+                        { temp: 24, desc: 'Cloudy / 多雲', icon: 'fas fa-cloud', type: 'cloudy' }, 
+                        { temp: 15, desc: 'Clear Sky / 晴朗', icon: 'fas fa-sun', type: 'sunny' }, 
+                        { temp: 10, desc: 'Rainy / 下雨', icon: 'fas fa-cloud-showers-heavy', type: 'rainy' }, 
+                        { temp: 20, desc: 'Windy / 強風', icon: 'fas fa-wind', type: 'windy' }
+                    ];
                     const forecast = [];
                     for(let i=0; i<count; i++) forecast.push(pool[(city.length + i) % pool.length]);
                     await new Promise(r => setTimeout(r, 800));
@@ -257,7 +276,10 @@
 
             const getWeatherGradient = (hex) => {
                 const type = currentDayWeather.value?.type || 'sunny';
-                const accent = type === 'sunny' ? '#FFD70040' : '#3B82F640';
+                let accent = '#FFD70040'; // Default sunny
+                if(type === 'rainy' || type === 'storm') accent = '#3B82F640';
+                if(type === 'cloudy') accent = '#9CA3AF40';
+                if(type === 'windy') accent = '#10B98140';
                 return `linear-gradient(115deg, ${hex} 0%, ${hex} 60%, ${accent} 100%)`;
             };
 
@@ -290,7 +312,7 @@
             const addExpense = () => { if(newExpense.value.name && newExpense.value.amount) selectedTrip.value.data.expenses.push({ ...newExpense.value }); newExpense.value = { name: '', amount: null }; };
             const addHotel = () => { if(newHotel.value.name) selectedTrip.value.data.hotels.push({ ...newHotel.value }); newHotel.value = { name: '', checkIn: '', checkOut: '' }; };
             const addShoppingItem = () => { if(newShoppingItem.value) selectedTrip.value.data.shopping.push({ name: newShoppingItem.value, done: false }); newShoppingItem.value = ''; };
-            const openSmartMap = (item) => { const target = item.address || item.name; if(target) window.open(`http://maps.google.com/maps?q=${encodeURIComponent(target)}`, '_blank'); };
+            const openSmartMap = (item) => { const target = item.address || item.name; if(target) window.open(`http://googleusercontent.com/maps.google.com/2{encodeURIComponent(target)}`, '_blank'); };
 
             return {
                 currentView, trips, filterCategory, showAddTripModal, showEditTripModal, showAddItineraryModal, showEditItineraryModal,
